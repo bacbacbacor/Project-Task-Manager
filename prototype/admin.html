@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Admin Dashboard</h1>
+        <button id="logoutBtn">Logout</button>
+    </header>
+    <main>
+        <h2>Welcome, <span id="adminName"></span>!</h2>
+        <section>
+            <h3>User Management</h3>
+            <button onclick="openUserModal()">Add User</button>
+            <table id="userTable">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Role</th>
+                        <th>Office</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </section>
+    </main>
+
+    <!-- Add User Modal -->
+    <div id="userModal" class="modal">
+        <div class="modal-content">
+            <h2>Add New User</h2>
+            <label>Role:</label>
+            <select id="userRole">
+                <option value="Manager">Manager</option>
+                <option value="Employee">Employee</option>
+            </select>
+
+            <label>Office:</label>
+            <select id="userOffice"></select>
+
+            <label>First Name:</label>
+            <input type="text" id="firstName">
+            <label>Last Name:</label>
+            <input type="text" id="lastName">
+            <label>Phone Number:</label>
+            <input type="text" id="number">
+            <label>Address:</label>
+            <input type="text" id="address">
+            <label>Birthday:</label>
+            <input type="date" id="birthday">
+            
+            <button onclick="addUser()">Save User</button>
+            <button onclick="closeUserModal()">Cancel</button>
+        </div>
+    </div>
+
+    <script src="logout.js"></script>
+    <script src="userManager.js"></script>
+</body>
+</html>
