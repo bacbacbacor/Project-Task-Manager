@@ -6,20 +6,41 @@
     <title>Admin Dashboard</title>
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
     <header>
         <h1>Admin Dashboard</h1>
         <button id="logoutBtn">Logout</button>
     </header>
+
     <main>
         <h2>Welcome, <span id="adminName"></span>!</h2>
-        <section>
+
+       
+        <section class="dashboard-cards">
+            <div class="card">
+                <h3>Total Users</h3>
+                <p id="totalUsers">0</p>
+            </div>
+            <div class="card">
+                <h3>Managers</h3>
+                <p id="totalManagers">0</p>
+            </div>
+            <div class="card">
+                <h3>Employees</h3>
+                <p id="totalEmployees">0</p>
+            </div>
+        </section>
+
+       
+        <section class="user-management">
             <h3>User Management</h3>
-            <button onclick="openUserModal()">Add User</button>
+            <button class="add-user-btn" onclick="openUserModal()">➕ Add User</button>
+
             <table id="userTable">
                 <thead>
                     <tr>
-                        <th>Username</th>
+                        <th>Name</th>
                         <th>Role</th>
                         <th>Office</th>
                         <th>Actions</th>
@@ -30,35 +51,44 @@
         </section>
     </main>
 
+    
     <div id="userModal" class="modal">
         <div class="modal-content">
             <h2>Add New User</h2>
-            <label>Role:</label>
-            <select id="userRole">
+            <label for="userRole">Select Role:</label>
+            <select id="userRole" onchange="showUserFields()">
+                <option value="" disabled selected>Select Role</option>
                 <option value="Manager">Manager</option>
                 <option value="Employee">Employee</option>
             </select>
 
-            <label>Office:</label>
-            <select id="userOffice"></select>
+            <div id="userFields" style="display: none;">
+                <label for="userOffice">Select Office:</label>
+                <select id="userOffice"></select>
 
-            <label>First Name:</label>
-            <input type="text" id="firstName">
-            <label>Last Name:</label>
-            <input type="text" id="lastName">
-            <label>Phone Number:</label>
-            <input type="text" id="number">
-            <label>Address:</label>
-            <input type="text" id="address">
-            <label>Birthday:</label>
-            <input type="date" id="birthday">
-            
-            <button onclick="addUser()">Save User</button>
-            <button onclick="closeUserModal()">Cancel</button>
+                <label for="firstName">First Name:</label>
+                <input type="text" id="firstName">
+
+                <label for="lastName">Last Name:</label>
+                <input type="text" id="lastName">
+
+                <label for="number">Phone Number:</label>
+                <input type="text" id="number">
+
+                <label for="address">Address:</label>
+                <input type="text" id="address">
+
+                <label for="birthday">Birthday:</label>
+                <input type="date" id="birthday">
+
+                <button class="save-user-btn" onclick="addUser()">Save User</button>
+                <button class="cancel-btn" onclick="closeUserModal()">Cancel</button>
+            </div>
         </div>
-    </div>
-
-    <script src="logout.js"></script>
-    <script src="userManager.js"></script>
+    </div>  
+    
+    <script src="js/logout.js"></script>
+    <script src="js/userManager.js"></script>
 </body>
+
 </html>

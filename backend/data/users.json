@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "username": "test",
+    "password": "password123",
+    "role": "Admin",
+    "office": "IT Department",
+    "firstName": "John",
+    "lastName": "Doe",
+    "number": "09123456789",
+    "address": "123 Main St",
+    "birthday": "1990-05-15"
+  },
+  {
+    "id": 2,
+    "username": "user2",
+    "password": "test",
+    "role": "Manager",
+    "office": "IT Department",
+    "firstName": "1111",
+    "lastName": "1111",
+    "number": "1111",
+    "address": "1111",
+    "birthday": "0111-11-11"
+  },
+  {
+    "id": 3,
+    "username": "user3",
+    "password": "123",
+    "role": "Employee",
+    "office": "IT Department",
+    "firstName": "2222",
+    "lastName": "2222",
+    "number": "22222",
+    "address": "22222",
+    "birthday": "2222-02-22"
+  },
+  {
+    "id": 4,
+    "username": "user4",
+    "password": "123",
+    "role": "Manager",
+    "office": "HR Department",
+    "firstName": "4444",
+    "lastName": "4444",
+    "number": "4444",
+    "address": "4444",
+    "birthday": "4444-04-04"
+  },
+  {
+    "id": 5,
+    "username": "user5",
+    "password": "123",
+    "role": "Employee",
+    "office": "Finance",
+    "firstName": "5555",
+    "lastName": "5555",
+    "number": "5555",
+    "address": "5555",
+    "birthday": "5555-05-05"
+  }
+]
