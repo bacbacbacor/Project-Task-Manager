@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function loadTasks() {
         let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
 
-        taskTable.innerHTML = ""; // Clear table before loading
+        taskTable.innerHTML = "";
 
         tasks.forEach((task, index) => {
             if (loggedInUser.role === "Employee" && task.assignedTo !== loggedInUser.username) return;
@@ -40,7 +40,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function saveTasks(tasks) {
         localStorage.setItem("tasks", JSON.stringify(tasks));
-        loadTasks(); // Reload the task list after saving
+        loadTasks();
     }
 
     window.addTask = function () {
@@ -56,7 +56,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
         tasks.push(newTask);
-        saveTasks(tasks); // Save & reload tasks
+        saveTasks(tasks);
     };
 
     window.editTask = function (index) {
@@ -75,13 +75,11 @@ document.addEventListener("DOMContentLoaded", function () {
             saveTasks(tasks);
         }
     };
-
     window.updateStatus = function (index, newStatus) {
         let tasks = JSON.parse(localStorage.getItem("tasks"));
         tasks[index].status = newStatus;
         saveTasks(tasks);
     };
-
-    loadTasks(); // Load tasks on page load
+    loadTasks();
 });
 

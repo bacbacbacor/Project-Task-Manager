@@ -14,18 +14,15 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             try {
-                // Load users from JSON file (Simulating fetch from local JSON)
                 const response = await fetch("data/users.json");
                 const users = await response.json();
 
-                // Find user
                 const user = users.find(u => u.username === username && u.password === password);
 
                 if (user) {
-                    // Store user data in localStorage for session persistence
+
                     localStorage.setItem("loggedInUser", JSON.stringify(user));
 
-                    // Redirect to respective dashboard based on role
                     switch (user.role) {
                         case "Admin":
                             window.location.href = "admin.html";
@@ -48,8 +45,6 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     }
-
-    // Redirect to login if not authenticated
     function checkAuth() {
         const user = JSON.parse(localStorage.getItem("loggedInUser"));
         if (!user) {
@@ -57,7 +52,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // Check authentication on dashboard pages
     if (window.location.pathname.includes("admin.html") ||
         window.location.pathname.includes("manager.html") ||
         window.location.pathname.includes("employee.html")) {

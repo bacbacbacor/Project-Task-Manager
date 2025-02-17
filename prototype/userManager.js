@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function loadUsers() {
         let users = JSON.parse(localStorage.getItem("users")) || [];
 
-        userTable.innerHTML = ""; // Clear table before loading users
+        userTable.innerHTML = "";
 
         users.forEach((user, index) => {
             if (user.role !== "Admin") {
@@ -92,6 +92,5 @@ document.addEventListener("DOMContentLoaded", function () {
             loadUsers();
         }
     };
-
     loadUsers();
 });
