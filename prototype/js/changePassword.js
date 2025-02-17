@@ -13,7 +13,7 @@ async function updatePassword() {
         return;
     }
 
-    // Get logged-in user from localStorage
+    
     const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
     if (!loggedInUser) {
         errorMessage.textContent = "Session expired. Please log in again.";
@@ -34,9 +34,9 @@ async function updatePassword() {
         const data = await response.json();
         alert(data.message);
 
-        // Clear session and redirect to login
-        localStorage.removeItem("loggedInUser"); // Log the user out
-        setTimeout(() => window.location.href = "index.html", 1500); // Redirect to login page
+        
+        localStorage.removeItem("loggedInUser"); 
+        setTimeout(() => window.location.href = "index.html", 1500); 
     } catch (error) {
         errorMessage.textContent = "Error updating password.";
         console.error("Password update error:", error);

@@ -5,7 +5,7 @@ const path = require("path");
 const router = express.Router();
 const usersFilePath = path.join(__dirname, "../data/users.json");
 
-// Load users from file
+
 const loadUsers = () => {
     if (!fs.existsSync(usersFilePath)) {
         fs.writeFileSync(usersFilePath, JSON.stringify([])); // Create empty file if missing
@@ -13,29 +13,29 @@ const loadUsers = () => {
     return JSON.parse(fs.readFileSync(usersFilePath));
 };
 
-// Save users to file
+
 const saveUsers = (users) => {
     fs.writeFileSync(usersFilePath, JSON.stringify(users, null, 2));
 };
 
-// **GET: Get all users**
+
 router.get("/", (req, res) => {
     res.json(loadUsers());
 });
 
-// **POST: Add a new user**
+
 router.post("/", (req, res) => {
     const users = loadUsers();
     
-    // Generate unique ID
+    
     const newId = users.length > 0 ? users[users.length - 1].id + 1 : 1;
 
-    // Ensure unique username
+   
     const newUsername = `user${newId}`;
     const newUser = {
         id: newId,
         username: newUsername,
-        password: "default123", // Default password
+        password: "default123", 
         role: req.body.role,
         office: req.body.office,
         firstName: req.body.firstName,
@@ -51,7 +51,7 @@ router.post("/", (req, res) => {
     res.json(newUser);
 });
 
-// **DELETE: Remove user by ID**
+
 router.delete("/:id", (req, res) => {
     let users = loadUsers();
     const userId = parseInt(req.params.id);
@@ -69,7 +69,7 @@ router.post("/update-password", (req, res) => {
         return res.status(404).json({ message: "User not found" });
     }
 
-    user.password = newPassword; // Update password
+    user.password = newPassword; 
     saveUsers(users);
 
     res.json({ message: "Password updated successfully" });
@@ -84,7 +84,7 @@ router.put("/:id", (req, res) => {
         return res.status(404).json({ message: "User not found" });
     }
 
-    // Update user fields
+  
     users[userIndex] = { ...users[userIndex], ...req.body };
 
     saveUsers(users);
@@ -100,7 +100,7 @@ router.put("/:id", (req, res) => {
         return res.status(404).json({ message: "User not found" });
     }
 
-    // Update user fields
+   
     users[userIndex] = { ...users[userIndex], ...req.body };
 
     saveUsers(users);

@@ -59,34 +59,7 @@
     </div>
 </div>
 
-<div id="editTaskModal" class="modal">
-    <div class="modal-content">
-        <h2>Edit Task</h2>
-        <input type="hidden" id="editTaskId"> <!-- Hidden field for task ID -->
 
-        <label for="editTaskTitle">Title:</label>
-        <input type="text" id="editTaskTitle">
-
-        <label for="editTaskDescription">Description:</label>
-        <textarea id="editTaskDescription"></textarea>
-
-        <label for="editStartDate">Start Date:</label>
-        <input type="date" id="editStartDate">
-
-        <label for="editEndDate">End Date:</label>
-        <input type="date" id="editEndDate">
-
-        <label for="editTaskStatus">Status:</label>
-        <select id="editTaskStatus">
-            <option value="Pending">Pending</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Completed">Completed</option>
-        </select>
-
-        <button onclick="updateTask()">Save Changes</button>
-        <button onclick="closeEditTaskModal()">Cancel</button>
-    </div>
-</div>
 
 <button onclick="openAssignTaskModal()">➕ Assign Task</button>
 <!-- Assign Task Modal -->
@@ -122,7 +95,7 @@
     </div>
 </div>
 
-    
+
 
 <script src="js/adminTaskManager.js"></script>
     <script src="js/logout.js"></script>

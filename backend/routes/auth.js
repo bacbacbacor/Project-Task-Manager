@@ -23,7 +23,6 @@ router.post("/login", (req, res) => {
         return res.status(401).json({ message: "Invalid username or password" });
     }
 
-    // Check if the user is using the default password
     const firstTimeLogin = user.password === "default123";
 
     res.json({
@@ -31,8 +30,8 @@ router.post("/login", (req, res) => {
         role: user.role,
         firstName: user.firstName,
         lastName: user.lastName,
-        firstTimeLogin: firstTimeLogin // Send this flag to the frontend
+        firstTimeLogin: firstTimeLogin 
     });
 });
 
-module.exports = router; // 🔹 Ensure module.exports is correct
+module.exports = router; 

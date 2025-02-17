@@ -94,5 +94,29 @@
     "number": "12343",
     "address": "Bikini Bottom",
     "birthday": "2001-02-12"
+  },
+  {
+    "id": 9,
+    "username": "user9",
+    "password": "123",
+    "role": "Employee",
+    "office": "IT Department",
+    "firstName": "under IT",
+    "lastName": "under IT",
+    "number": "123",
+    "address": "under IT",
+    "birthday": "5555-05-05"
+  },
+  {
+    "id": 10,
+    "username": "user10",
+    "password": "default123",
+    "role": "Employee",
+    "office": "IT Department",
+    "firstName": "under 9 still",
+    "lastName": "under 9 still",
+    "number": "312123",
+    "address": "under 9 still",
+    "birthday": "3232-04-04"
   }
 ]

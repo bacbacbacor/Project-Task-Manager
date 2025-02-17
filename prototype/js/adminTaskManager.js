@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const taskTable = document.getElementById("taskTable").querySelector("tbody");
     const assignTaskModal = document.getElementById("assignTaskModal");
 
-    // **Load All Tasks**
+    
     async function loadAllTasks() {
         try {
             const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
@@ -49,17 +49,17 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // **Open Assign Task Modal**
+    
     window.openAssignTaskModal = function () {
         assignTaskModal.style.display = "block";
     };
 
-    // **Close Assign Task Modal**
+    
     window.closeAssignTaskModal = function () {
         assignTaskModal.style.display = "none";
     };
 
-    // **Assign Task Function**
+   
     window.assignTask = async function () {
         const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
         if (!loggedInUser || (loggedInUser.role !== "Admin" && loggedInUser.role !== "Manager")) {
@@ -73,7 +73,7 @@ document.addEventListener("DOMContentLoaded", function () {
             startDate: document.getElementById("startDate").value,
             endDate: document.getElementById("endDate").value,
             status: document.getElementById("taskStatus").value,
-            assignedTo: document.getElementById("assignedTo").value.trim(), // Employee username
+            assignedTo: document.getElementById("assignedTo").value.trim(),
             createdBy: loggedInUser.username,
             role: loggedInUser.role
         };
@@ -91,14 +91,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
             alert("Task assigned successfully!");
             document.getElementById("assignTaskForm").reset();
-            closeAssignTaskModal(); // Close the modal
-            loadAllTasks(); // Refresh the task list
+            closeAssignTaskModal();
+            loadAllTasks(); 
         } catch (error) {
             console.error("❌ Error assigning task:", error);
         }
     };
 
-    // **Delete Task Function**
     window.deleteTask = async function (taskId) {
         try {
             await fetch(`${API_URL}/${taskId}`, { method: "DELETE" });
@@ -108,6 +107,5 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     };
 
-    // Load tasks on page load
     loadAllTasks();
 });

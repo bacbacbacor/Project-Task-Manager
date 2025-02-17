@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
     const taskTable = document.getElementById("taskTable").querySelector("tbody");
     const taskModal = document.getElementById("taskModal");
-    const editTaskModal = document.getElementById("editTaskModal"); // Edit Task Modal
+    const editTaskModal = document.getElementById("editTaskModal"); 
     const API_URL = "http://localhost:3000/tasks";
 
     async function loadTasks() {
@@ -71,7 +71,7 @@ document.addEventListener("DOMContentLoaded", function () {
             startDate: document.getElementById("startDate").value,
             endDate: document.getElementById("endDate").value,
             status: document.getElementById("taskStatus").value,
-            assignedTo: loggedInUser.username, // Only assign to the logged-in user
+            assignedTo: loggedInUser.username, 
             createdBy: loggedInUser.username
         };
 
@@ -106,13 +106,13 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("editEndDate").value = task.endDate;
             document.getElementById("editTaskStatus").value = task.status;
 
-            editTaskModal.style.display = "block"; // ✅ Ensure modal is visible
+            editTaskModal.style.display = "block"; 
         } catch (error) {
             console.error("❌ Error fetching task details:", error);
         }
     };
 
-    // **Close Edit Task Modal**
+    
     window.closeEditTaskModal = function () {
         editTaskModal.style.display = "none";
     };
@@ -122,7 +122,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const taskId = document.getElementById("editTaskId").value;
 
         const updatedTask = {
-            username: loggedInUser.username, // Ensure only the owner can edit
+            username: loggedInUser.username, 
             title: document.getElementById("editTaskTitle").value.trim(),
             description: document.getElementById("editTaskDescription").value.trim(),
             startDate: document.getElementById("editStartDate").value,

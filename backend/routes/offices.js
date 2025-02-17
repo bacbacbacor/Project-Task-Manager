@@ -1,11 +1,9 @@
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
-
 const router = express.Router();
 const officesFilePath = path.join(__dirname, "../data/offices.json");
 
-// **GET: Retrieve all offices**
 router.get("/", (req, res) => {
     try {
         const data = fs.readFileSync(officesFilePath);

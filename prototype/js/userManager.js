@@ -4,24 +4,24 @@ document.addEventListener("DOMContentLoaded", function () {
     const userRoleSelect = document.getElementById("userRole");
     const userOfficeSelect = document.getElementById("userOffice");
     const userFields = document.getElementById("userFields");
-    const API_URL = "http://localhost:3000/users"; // Backend API URL
+    const API_URL = "http://localhost:3000/users"; 
 
     async function loadUsers() {
         try {
             const response = await fetch("http://localhost:3000/users");
             const users = await response.json();
     
-            // Update user counts in dashboard
+           
             document.getElementById("totalUsers").textContent = users.length;
             document.getElementById("totalManagers").textContent = users.filter(user => user.role === "Manager").length;
             document.getElementById("totalEmployees").textContent = users.filter(user => user.role === "Employee").length;
     
-            // Load users into the table
+            
             const userTable = document.getElementById("userTable").querySelector("tbody");
-            userTable.innerHTML = ""; // Clear table before loading new data
+            userTable.innerHTML = ""; 
     
             users.forEach((user) => {
-                if (user.role !== "Admin") { // Prevent editing Admin users
+                if (user.role !== "Admin") { 
                     let row = `
                         <tr>
                             <td>${user.firstName} ${user.lastName}</td>
@@ -43,19 +43,19 @@ document.addEventListener("DOMContentLoaded", function () {
     
     async function loadOffices(selectElementId, selectedOffice = "") {
         try {
-            const response = await fetch("http://localhost:3000/offices"); // Fetch office list
+            const response = await fetch("http://localhost:3000/offices"); 
             if (!response.ok) throw new Error("Failed to load offices.");
     
             const offices = await response.json();
             const officeSelect = document.getElementById(selectElementId);
             
-            // Ensure officeSelect exists before modifying it
+            
             if (!officeSelect) {
                 console.error(`Dropdown with ID ${selectElementId} not found.`);
                 return;
             }
     
-            // Clear dropdown and add default option
+            
             officeSelect.innerHTML = '<option value="" disabled>Select Office</option>';
     
             offices.forEach(office => {
@@ -63,7 +63,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 option.value = office.officeName;
                 option.textContent = office.officeName;
                 
-                // Pre-select the current office if editing a user
+                
                 if (selectedOffice && office.officeName === selectedOffice) {
                     option.selected = true;
                 }
@@ -77,15 +77,15 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
     
-    // Open Edit User Modal
+    
     window.editUser = async function (userId) {
         try {
-            // Fetch user data
+           
             const response = await fetch(`http://localhost:3000/users/${userId}`);
             if (!response.ok) throw new Error("Failed to fetch user details.");
             const user = await response.json();
     
-            // Populate form fields (except office dropdown for now)
+            
             document.getElementById("editUserId").value = user.id;
             document.getElementById("editFirstName").value = user.firstName;
             document.getElementById("editLastName").value = user.lastName;
@@ -94,10 +94,10 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("editAddress").value = user.address;
             document.getElementById("editBirthday").value = user.birthday;
     
-            // Load office options first, then pre-select the user's current office
+            
             await loadOffices("editOffice", user.office);
     
-            // Show the modal after loading office options
+            
             document.getElementById("editUserModal").style.display = "block";
         } catch (error) {
             console.error("Error fetching user details:", error);
@@ -105,12 +105,12 @@ document.addEventListener("DOMContentLoaded", function () {
     };
     
     
-// Close Edit User Modal
+
 window.closeEditUserModal = function () {
     document.getElementById("editUserModal").style.display = "none";
 };
 
-// Update User Information
+
 window.updateUser = async function () {
     const userId = document.getElementById("editUserId").value;
 
@@ -134,7 +134,7 @@ window.updateUser = async function () {
         const data = await response.json();
         console.log("User updated:", data);
 
-        loadUsers(); // Refresh the table
+        loadUsers(); 
         closeEditUserModal();
     } catch (error) {
         console.error("Error updating user:", error);
@@ -142,7 +142,7 @@ window.updateUser = async function () {
 };
     
 window.openUserModal = function () {
-    // Load office options when opening the modal
+    
     loadOffices("userOffice"); 
     document.getElementById("userModal").style.display = "block";
 };
@@ -202,12 +202,12 @@ window.openUserModal = function () {
 
     window.editUser = async function (userId) {
         try {
-            // Fetch user data
+            
             const response = await fetch(`http://localhost:3000/users/${userId}`);
             if (!response.ok) throw new Error("Failed to fetch user details.");
             const user = await response.json();
     
-            // Populate form fields (except office dropdown)
+            
             document.getElementById("editUserId").value = user.id;
             document.getElementById("editFirstName").value = user.firstName;
             document.getElementById("editLastName").value = user.lastName;
@@ -216,10 +216,10 @@ window.openUserModal = function () {
             document.getElementById("editAddress").value = user.address;
             document.getElementById("editBirthday").value = user.birthday;
     
-            // Load office options and pre-select the user's current office
+            
             await loadOffices("editOffice", user.office);
     
-            // Show the modal only after loading office options
+         
             document.getElementById("editUserModal").style.display = "block";
         } catch (error) {
             console.error("Error fetching user details:", error);
@@ -227,12 +227,12 @@ window.openUserModal = function () {
     };
     
     
-    // Close Edit User Modal
+   
     window.closeEditUserModal = function () {
         document.getElementById("editUserModal").style.display = "none";
     };
     
-    // Update User Information
+   
     window.updateUser = async function () {
         const userId = document.getElementById("editUserId").value;
     
@@ -256,14 +256,14 @@ window.openUserModal = function () {
             const data = await response.json();
             console.log("User updated:", data);
     
-            loadUsers(); // Refresh table
+            loadUsers(); 
             closeEditUserModal();
         } catch (error) {
             console.error("Error updating user:", error);
         }
     };
     window.addTask = async function () {
-        console.log("Add Task button clicked!"); // Debugging
+        console.log("Add Task button clicked!"); 
         const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
     
         if (!loggedInUser) {
@@ -300,8 +300,8 @@ window.openUserModal = function () {
             const data = await response.json();
             console.log("Task added:", data);
     
-            loadTasks(); // Refresh the task list
-            closeTaskModal(); // Hide modal after adding task
+            loadTasks(); 
+            closeTaskModal(); 
         } catch (error) {
             console.error("Error adding task:", error);
             alert("Failed to add task.");

@@ -19,12 +19,12 @@ async function login() {
         localStorage.setItem("loggedInUser", JSON.stringify(data));
 
         if (data.firstTimeLogin) {
-            // Redirect user to change password page if first login
+            
             window.location.href = "change-password.html";
             return;
         }
 
-        // Redirect based on role
+        
         if (data.role === "Admin") {
             window.location.href = "admin.html";
         } else if (data.role === "Manager") {
