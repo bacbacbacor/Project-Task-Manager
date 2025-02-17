@@ -87,6 +87,44 @@
         <button onclick="closeEditTaskModal()">Cancel</button>
     </div>
 </div>
+
+<button onclick="openAssignTaskModal()">➕ Assign Task</button>
+<!-- Assign Task Modal -->
+<div id="assignTaskModal" class="modal">
+    <div class="modal-content">
+        <h2>Assign a Task to an Employee</h2>
+        <span class="close" onclick="closeAssignTaskModal()">&times;</span>
+
+        <label for="taskTitle">Title:</label>
+        <input type="text" id="taskTitle" required>
+
+        <label for="taskDescription">Description:</label>
+        <textarea id="taskDescription" required></textarea>
+
+        <label for="startDate">Start Date:</label>
+        <input type="date" id="startDate" required>
+
+        <label for="endDate">End Date:</label>
+        <input type="date" id="endDate" required>
+
+        <label for="taskStatus">Status:</label>
+        <select id="taskStatus">
+            <option value="Pending">Pending</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Completed">Completed</option>
+        </select>
+
+        <label for="assignedTo">Assign to (Employee Username):</label>
+        <input type="text" id="assignedTo" required>
+
+        <button onclick="assignTask()">Assign Task</button>
+        <button onclick="closeAssignTaskModal()">Cancel</button>
+    </div>
+</div>
+
+    
+
+<script src="js/adminTaskManager.js"></script>
     <script src="js/logout.js"></script>
     <script src="js/taskManager.js"></script>
 </body>

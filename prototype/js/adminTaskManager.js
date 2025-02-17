@@ -1,22 +1,24 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const taskTable = document.getElementById("taskTable").querySelector("tbody");
     const API_URL = "http://localhost:3000/tasks";
+    const taskTable = document.getElementById("taskTable").querySelector("tbody");
+    const assignTaskModal = document.getElementById("assignTaskModal");
 
+    // **Load All Tasks**
     async function loadAllTasks() {
         try {
             const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
-            if (!loggedInUser || loggedInUser.role !== "Admin") {
-                alert("Access denied. Only Admins can view all tasks.");
+            if (!loggedInUser || (loggedInUser.role !== "Admin" && loggedInUser.role !== "Manager")) {
+                alert("Access denied. Only Admins and Managers can view tasks.");
                 return;
             }
 
-            console.log(`📤 Fetching all tasks as Admin: ${loggedInUser.username}`);
+            console.log(`📤 Fetching tasks for ${loggedInUser.role}: ${loggedInUser.username}`);
 
-            const response = await fetch(`${API_URL}?username=${loggedInUser.username}&role=Admin`);
+            const response = await fetch(`${API_URL}?username=${loggedInUser.username}&role=${loggedInUser.role}`);
             if (!response.ok) throw new Error("Failed to fetch tasks.");
             const tasks = await response.json();
 
-            console.log("✅ All tasks received:", tasks);
+            console.log("✅ Tasks received:", tasks);
 
             taskTable.innerHTML = "";
 
@@ -47,6 +49,56 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    // **Open Assign Task Modal**
+    window.openAssignTaskModal = function () {
+        assignTaskModal.style.display = "block";
+    };
+
+    // **Close Assign Task Modal**
+    window.closeAssignTaskModal = function () {
+        assignTaskModal.style.display = "none";
+    };
+
+    // **Assign Task Function**
+    window.assignTask = async function () {
+        const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
+        if (!loggedInUser || (loggedInUser.role !== "Admin" && loggedInUser.role !== "Manager")) {
+            alert("Access denied. Only Admins and Managers can assign tasks.");
+            return;
+        }
+
+        const newTask = {
+            title: document.getElementById("taskTitle").value.trim(),
+            description: document.getElementById("taskDescription").value.trim(),
+            startDate: document.getElementById("startDate").value,
+            endDate: document.getElementById("endDate").value,
+            status: document.getElementById("taskStatus").value,
+            assignedTo: document.getElementById("assignedTo").value.trim(), // Employee username
+            createdBy: loggedInUser.username,
+            role: loggedInUser.role
+        };
+
+        try {
+            const response = await fetch(API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(newTask)
+            });
+
+            if (!response.ok) throw new Error("Failed to assign task.");
+            const data = await response.json();
+            console.log("✅ Task assigned:", data);
+
+            alert("Task assigned successfully!");
+            document.getElementById("assignTaskForm").reset();
+            closeAssignTaskModal(); // Close the modal
+            loadAllTasks(); // Refresh the task list
+        } catch (error) {
+            console.error("❌ Error assigning task:", error);
+        }
+    };
+
+    // **Delete Task Function**
     window.deleteTask = async function (taskId) {
         try {
             await fetch(`${API_URL}/${taskId}`, { method: "DELETE" });
@@ -56,5 +108,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     };
 
+    // Load tasks on page load
     loadAllTasks();
 });

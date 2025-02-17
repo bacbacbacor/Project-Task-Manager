@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,7 +17,7 @@
     <main>
         <h2>Welcome, <span id="adminName"></span>!</h2>
 
-       
+
         <section class="dashboard-cards">
             <div class="card">
                 <h3>Total Users</h3>
@@ -32,7 +33,7 @@
             </div>
         </section>
 
-       
+
         <section class="user-management">
             <h3>User Management</h3>
             <button class="add-user-btn" onclick="openUserModal()">➕ Add User</button>
@@ -84,37 +85,37 @@
                 <button class="cancel-btn" onclick="closeUserModal()">Cancel</button>
             </div>
         </div>
-    </div> 
-    
+    </div>
+
     <div id="editUserModal" class="modal">
         <div class="modal-content">
             <h2>Edit User</h2>
             <input type="hidden" id="editUserId"> <!-- Store user ID -->
-    
+
             <label for="editFirstName">First Name:</label>
             <input type="text" id="editFirstName">
-    
+
             <label for="editLastName">Last Name:</label>
             <input type="text" id="editLastName">
-    
+
             <label for="editRole">Role:</label>
             <select id="editRole">
                 <option value="Manager">Manager</option>
                 <option value="Employee">Employee</option>
             </select>
-    
+
             <label for="editOffice">Office:</label>
             <select id="editOffice"></select>
-    
+
             <label for="editNumber">Phone Number:</label>
             <input type="text" id="editNumber">
-    
+
             <label for="editAddress">Address:</label>
             <input type="text" id="editAddress">
-    
+
             <label for="editBirthday">Birthday:</label>
             <input type="date" id="editBirthday">
-    
+
             <button class="save-user-btn" onclick="updateUser()">Save Changes</button>
             <button class="cancel-btn" onclick="closeEditUserModal()">Cancel</button>
         </div>
@@ -138,7 +139,47 @@
         </thead>
         <tbody></tbody>
     </table>
+
+
+    <button onclick="openAssignTaskModal()">➕ Assign Task</button>
+    <!-- Assign Task Modal -->
+    <div id="assignTaskModal" class="modal">
+        <div class="modal-content">
+            <h2>Assign a Task to an Employee</h2>
+            <span class="close" onclick="closeAssignTaskModal()">&times;</span>
+
+            <label for="taskTitle">Title:</label>
+            <input type="text" id="taskTitle" required>
+
+            <label for="taskDescription">Description:</label>
+            <textarea id="taskDescription" required></textarea>
+
+            <label for="startDate">Start Date:</label>
+            <input type="date" id="startDate" required>
+
+            <label for="endDate">End Date:</label>
+            <input type="date" id="endDate" required>
+
+            <label for="taskStatus">Status:</label>
+            <select id="taskStatus">
+                <option value="Pending">Pending</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Completed">Completed</option>
+            </select>
+
+            <label for="assignedTo">Assign to (Employee Username):</label>
+            <input type="text" id="assignedTo" required>
+
+            <button onclick="assignTask()">Assign Task</button>
+            <button onclick="closeAssignTaskModal()">Cancel</button>
+        </div>
+    </div>
+
     
+
+
+    <script src="js/adminTaskManager.js"></script>
+
     <script src="js/adminTaskManager.js"></script>
     <script src="js/logout.js"></script>
     <script src="js/userManager.js"></script>

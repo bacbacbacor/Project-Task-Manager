@@ -62,19 +62,21 @@
 <div id="editTaskModal" class="modal">
     <div class="modal-content">
         <h2>Edit Task</h2>
-        <input type="hidden" id="editTaskId"> <!-- Hidden field for task ID -->
+        <span class="close" onclick="closeEditTaskModal()">&times;</span>
+
+        <input type="hidden" id="editTaskId">
 
         <label for="editTaskTitle">Title:</label>
-        <input type="text" id="editTaskTitle">
+        <input type="text" id="editTaskTitle" required>
 
         <label for="editTaskDescription">Description:</label>
-        <textarea id="editTaskDescription"></textarea>
+        <textarea id="editTaskDescription" required></textarea>
 
         <label for="editStartDate">Start Date:</label>
-        <input type="date" id="editStartDate">
+        <input type="date" id="editStartDate" required>
 
         <label for="editEndDate">End Date:</label>
-        <input type="date" id="editEndDate">
+        <input type="date" id="editEndDate" required>
 
         <label for="editTaskStatus">Status:</label>
         <select id="editTaskStatus">

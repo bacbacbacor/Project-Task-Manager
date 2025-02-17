@@ -11,24 +11,24 @@ document.addEventListener("DOMContentLoaded", function () {
                 alert("You must be logged in.");
                 return;
             }
-    
+
             console.log(`📤 Fetching tasks for user: ${loggedInUser.username}`);
-    
+
             const response = await fetch(
                 `http://localhost:3000/tasks?username=${loggedInUser.username}&role=${loggedInUser.role}`
             );
             if (!response.ok) throw new Error("Failed to fetch tasks.");
             const tasks = await response.json();
-    
+
             console.log("✅ Tasks received:", tasks);
-    
+
             taskTable.innerHTML = "";
-    
+
             if (tasks.length === 0) {
                 taskTable.innerHTML = "<tr><td colspan='6'>No tasks assigned.</td></tr>";
                 return;
             }
-    
+
             tasks.forEach(task => {
                 let row = `
                     <tr>
@@ -91,9 +91,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
     window.editTask = async function (taskId) {
         try {
+            console.log(`🛠 Fetching task ${taskId} for editing...`);
+
             const response = await fetch(`${API_URL}/${taskId}`);
             if (!response.ok) throw new Error("Failed to fetch task details.");
             const task = await response.json();
+
+            console.log("✅ Task data:", task);
 
             document.getElementById("editTaskId").value = task.id;
             document.getElementById("editTaskTitle").value = task.title;
@@ -102,12 +106,13 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("editEndDate").value = task.endDate;
             document.getElementById("editTaskStatus").value = task.status;
 
-            editTaskModal.style.display = "block";
+            editTaskModal.style.display = "block"; // ✅ Ensure modal is visible
         } catch (error) {
             console.error("❌ Error fetching task details:", error);
         }
     };
 
+    // **Close Edit Task Modal**
     window.closeEditTaskModal = function () {
         editTaskModal.style.display = "none";
     };

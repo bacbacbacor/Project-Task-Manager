@@ -49,5 +49,35 @@
     "status": "Completed",
     "assignedTo": "user4",
     "createdBy": "user4"
+  },
+  {
+    "id": 6,
+    "title": "User6 Task- 1",
+    "description": "task task task",
+    "startDate": "1222-12-12",
+    "endDate": "1222-01-21",
+    "status": "In Progress",
+    "assignedTo": "user6",
+    "createdBy": "user6"
+  },
+  {
+    "id": 7,
+    "title": "test assign to user 6",
+    "description": "assign to user 6",
+    "startDate": "1111-11-11",
+    "endDate": "1111-11-11",
+    "status": "In Progress",
+    "assignedTo": "user6",
+    "createdBy": "admin"
+  },
+  {
+    "id": 8,
+    "title": "X Mas party Plannin",
+    "description": "plan pla  plan",
+    "startDate": "2222-02-22",
+    "endDate": "0002-02-22",
+    "status": "In Progress",
+    "assignedTo": "user3",
+    "createdBy": "admin"
   }
 ]
