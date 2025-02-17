@@ -90,4 +90,33 @@ router.put("/:id", (req, res) => {
     saveUsers(users);
     res.json({ message: "User updated successfully", user: users[userIndex] });
 });
+
+router.put("/:id", (req, res) => {
+    let users = loadUsers();
+    const userId = parseInt(req.params.id);
+    let userIndex = users.findIndex(u => u.id === userId);
+
+    if (userIndex === -1) {
+        return res.status(404).json({ message: "User not found" });
+    }
+
+    // Update user fields
+    users[userIndex] = { ...users[userIndex], ...req.body };
+
+    saveUsers(users);
+    res.json({ message: "User updated successfully", user: users[userIndex] });
+});
+
+router.get("/:id", (req, res) => {
+    const users = loadUsers();
+    const userId = parseInt(req.params.id);
+    const user = users.find(u => u.id === userId);
+
+    if (!user) {
+        return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json(user);
+});
+
 module.exports = router;

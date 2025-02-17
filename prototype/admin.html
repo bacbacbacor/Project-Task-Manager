@@ -51,7 +51,6 @@
         </section>
     </main>
 
-    
     <div id="userModal" class="modal">
         <div class="modal-content">
             <h2>Add New User</h2>
@@ -85,7 +84,43 @@
                 <button class="cancel-btn" onclick="closeUserModal()">Cancel</button>
             </div>
         </div>
-    </div>  
+    </div> 
+    
+    <div id="editUserModal" class="modal">
+        <div class="modal-content">
+            <h2>Edit User</h2>
+            <input type="hidden" id="editUserId"> <!-- Store user ID -->
+    
+            <label for="editFirstName">First Name:</label>
+            <input type="text" id="editFirstName">
+    
+            <label for="editLastName">Last Name:</label>
+            <input type="text" id="editLastName">
+    
+            <label for="editRole">Role:</label>
+            <select id="editRole">
+                <option value="Manager">Manager</option>
+                <option value="Employee">Employee</option>
+            </select>
+    
+            <label for="editOffice">Office:</label>
+            <select id="editOffice"></select>
+    
+            <label for="editNumber">Phone Number:</label>
+            <input type="text" id="editNumber">
+    
+            <label for="editAddress">Address:</label>
+            <input type="text" id="editAddress">
+    
+            <label for="editBirthday">Birthday:</label>
+            <input type="date" id="editBirthday">
+    
+            <button class="save-user-btn" onclick="updateUser()">Save Changes</button>
+            <button class="cancel-btn" onclick="closeEditUserModal()">Cancel</button>
+        </div>
+    </div>
+
+   
     
     <script src="js/logout.js"></script>
     <script src="js/userManager.js"></script>
