@@ -26,7 +26,7 @@
   {
     "id": 6,
     "username": "user6",
-    "password": "default123",
+    "password": "123",
     "role": "Manager",
     "office": "HR Department",
     "firstName": "6",

@@ -262,6 +262,52 @@ window.openUserModal = function () {
             console.error("Error updating user:", error);
         }
     };
+    window.addTask = async function () {
+        console.log("Add Task button clicked!"); // Debugging
+        const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
+    
+        if (!loggedInUser) {
+            alert("You must be logged in to add a task.");
+            return;
+        }
+    
+        const newTask = {
+            title: document.getElementById("taskTitle").value.trim(),
+            description: document.getElementById("taskDescription").value.trim(),
+            startDate: document.getElementById("startDate").value,
+            endDate: document.getElementById("endDate").value,
+            status: document.getElementById("taskStatus").value,
+            assignedTo: loggedInUser.username,
+            createdBy: loggedInUser.username
+        };
+    
+        if (!newTask.title || !newTask.startDate || !newTask.endDate) {
+            alert("Please fill in all required fields.");
+            return;
+        }
+    
+        try {
+            const response = await fetch("http://localhost:3000/tasks", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(newTask)
+            });
+    
+            if (!response.ok) {
+                throw new Error("Failed to add task.");
+            }
+    
+            const data = await response.json();
+            console.log("Task added:", data);
+    
+            loadTasks(); // Refresh the task list
+            closeTaskModal(); // Hide modal after adding task
+        } catch (error) {
+            console.error("Error adding task:", error);
+            alert("Failed to add task.");
+        }
+    };
+    
 
     loadUsers();
 });

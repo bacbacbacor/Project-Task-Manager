@@ -8,16 +8,19 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
-// Load Routes (Ensure Correct Path)
-const usersRoutes = require("./routes/users"); // 🔹 Make sure this file exists
-const authRoutes = require("./routes/auth");   // 🔹 Make sure this file exists
+// Load Routes
+const usersRoutes = require("./routes/users");
+const authRoutes = require("./routes/auth");
 const officesRoutes = require("./routes/offices");
+const tasksRoutes = require("./routes/tasks"); // ✅ Make sure this exists!
 
-// Use Routes (Ensure They Are Functions)
+// Use Routes
 app.use("/users", usersRoutes);
 app.use("/auth", authRoutes);
 app.use("/offices", officesRoutes);
+app.use("/tasks", tasksRoutes); // ✅ Check if this is causing the error
 
+// Start Server
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
