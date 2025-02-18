@@ -96,9 +96,9 @@ router.post("/", (req, res) => {
         return res.status(400).json({ message: "Missing required fields." });
     }
 
-    // Only Admins & Managers can assign tasks
-    if (role !== "Admin" && role !== "Manager") {
-        return res.status(403).json({ message: "Only Admins and Managers can assign tasks." });
+    // ✅ Allow Employees to create their own tasks
+    if (role === "Employee" && assignedTo !== createdBy) {
+        return res.status(403).json({ message: "Employees can only assign tasks to themselves." });
     }
 
     const newTask = {
@@ -115,31 +115,41 @@ router.post("/", (req, res) => {
     tasks.push(newTask);
     saveTasks(tasks);
 
-    res.json({ message: "Task assigned successfully", task: newTask });
+    res.json({ message: "Task added successfully", task: newTask });
 });
+
 
 // **PUT: Update an existing task**
-router.put("/:id", (req, res) => {
-    let tasks = loadTasks();
-    const taskId = parseInt(req.params.id);
-    let taskIndex = tasks.findIndex(task => task.id === taskId);
+router.post("/", (req, res) => {
+    const tasks = loadTasks();
+    const { title, description, startDate, endDate, status, assignedTo, createdBy, role } = req.body;
 
-    if (taskIndex === -1) {
-        return res.status(404).json({ message: "Task not found." });
+    if (!title || !assignedTo || !createdBy || !role) {
+        return res.status(400).json({ message: "Missing required fields." });
     }
 
-    const { username, role } = req.body;
-
-    // Ensure only the assigned user, creator, or Admin can edit the task
-    if (tasks[taskIndex].assignedTo !== username && tasks[taskIndex].createdBy !== username && role !== "Admin") {
-        return res.status(403).json({ message: "You can only edit your assigned or created tasks." });
+    // ✅ Allow Employees to create their own tasks
+    if (role !== "Admin" && role !== "Manager" && assignedTo !== createdBy) {
+        return res.status(403).json({ message: "Employees can only assign tasks to themselves." });
     }
 
-    // Update task fields
-    tasks[taskIndex] = { ...tasks[taskIndex], ...req.body };
+    const newTask = {
+        id: tasks.length > 0 ? tasks[tasks.length - 1].id + 1 : 1,
+        title,
+        description,
+        startDate,
+        endDate,
+        status: status || "Pending",
+        assignedTo,
+        createdBy
+    };
+
+    tasks.push(newTask);
     saveTasks(tasks);
-    res.json({ message: "Task updated successfully", task: tasks[taskIndex] });
+
+    res.json({ message: "Task added successfully", task: newTask });
 });
+
 
 // **DELETE: Remove a task by ID**
 router.delete("/:id", (req, res) => {
