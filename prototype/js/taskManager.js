@@ -64,35 +64,30 @@ document.addEventListener("DOMContentLoaded", function () {
             alert("You must be logged in.");
             return;
         }
-    
+
         const newTask = {
             title: document.getElementById("taskTitle").value.trim(),
             description: document.getElementById("taskDescription").value.trim(),
             startDate: document.getElementById("startDate").value,
             endDate: document.getElementById("endDate").value,
-            status: "Pending",
-            assignedTo: loggedInUser.username, // Employee assigns to self
-            createdBy: loggedInUser.username,
-            role: loggedInUser.role // Ensure it passes the role
+            status: document.getElementById("taskStatus").value,
+            assignedTo: loggedInUser.username, 
+            createdBy: loggedInUser.username
         };
-    
+
         try {
-            const response = await fetch("http://localhost:3000/tasks", {
+            await fetch(API_URL, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(newTask)
             });
-    
-            if (!response.ok) throw new Error("Failed to add task.");
-            alert("Task added successfully!");
-    
-            loadTasks(); 
+
+            loadTasks();
             closeTaskModal();
         } catch (error) {
             console.error("❌ Error adding task:", error);
         }
     };
-    
 
     window.editTask = async function (taskId) {
         try {
