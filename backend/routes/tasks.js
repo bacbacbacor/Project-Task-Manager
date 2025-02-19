@@ -26,7 +26,7 @@ const saveTasks = (tasks) => {
     fs.writeFileSync(tasksFilePath, JSON.stringify(tasks, null, 2));
 };
 
-// **GET: Get tasks (Admins see all, Managers see employees in their office)**
+// **GET: Get tasks with first names instead of usernames**
 router.get("/", (req, res) => {
     try {
         const tasks = loadTasks();
@@ -38,37 +38,55 @@ router.get("/", (req, res) => {
             return res.status(400).json({ message: "Username and role are required." });
         }
 
+        // Convert usernames to first names
+        const getUserFullName = (username) => {
+            const user = users.find(user => user.username === username);
+            return user ? `${user.firstName} ${user.lastName}` : username;
+        };
+
         let userTasks;
         if (role === "Admin") {
-            userTasks = tasks; // ✅ Admins see all tasks
+            userTasks = tasks.map(task => ({
+                ...task,
+                assignedTo: getUserFullName(task.assignedTo),
+                createdBy: getUserFullName(task.createdBy),
+            }));
         } else if (role === "Manager") {
-            // **Find Manager's Office**
             const manager = users.find(user => user.username === username);
             if (!manager) {
-                return res.status(404).json({ message: "Manager not found in user list." });
+                return res.status(404).json({ message: "Manager not found." });
             }
             const managerOffice = manager.office;
 
-            // **Find Employees in the Same Office**
             const employeesInOffice = users
                 .filter(user => user.role === "Employee" && user.office === managerOffice)
                 .map(user => user.username);
 
-            // **Filter Tasks: Manager sees their own + Employees' tasks in same office**
-            userTasks = tasks.filter(task =>
-                employeesInOffice.includes(task.assignedTo) || task.assignedTo === username
-            );
+            userTasks = tasks
+                .filter(task => employeesInOffice.includes(task.assignedTo) || task.assignedTo === username)
+                .map(task => ({
+                    ...task,
+                    assignedTo: getUserFullName(task.assignedTo),
+                    createdBy: getUserFullName(task.createdBy),
+                }));
         } else {
-            // **Employees only see their own tasks**
-            userTasks = tasks.filter(task => task.assignedTo === username);
+            userTasks = tasks
+                .filter(task => task.assignedTo === username)
+                .map(task => ({
+                    ...task,
+                    assignedTo: getUserFullName(task.assignedTo),
+                    createdBy: getUserFullName(task.createdBy),
+                }));
         }
 
-        console.log(`📌 Returning ${userTasks.length} tasks for ${role} (${username})`);
         res.json(userTasks);
     } catch (error) {
         res.status(500).json({ message: "Error loading tasks." });
     }
 });
+
+module.exports = router;
+
 
 // **GET: Get a specific task by ID**
 router.get("/:id", (req, res) => {
