@@ -34,5 +34,15 @@
     "number": "123",
     "address": "123",
     "birthday": "1231-02-22"
+  },
+  {
+    "id": 4,
+    "role": "Employee",
+    "office": "IT Department",
+    "firstName": "Mark",
+    "lastName": "Rio",
+    "number": "123",
+    "address": "32131",
+    "birthday": "2001-11-22"
   }
 ]

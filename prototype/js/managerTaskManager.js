@@ -1,6 +1,15 @@
 document.addEventListener("DOMContentLoaded", function () {
     const taskTable = document.getElementById("taskTable").querySelector("tbody");
-    const API_URL = "http://localhost:3000/tasks";
+    const assignedToInput = document.getElementById("assignedTo");
+    const assignTaskButton = document.getElementById("assignTaskButton");
+    const API_URL = "http://localhost:3000";
+
+    if (!assignTaskButton) {
+        console.error("❌ ERROR: Assign Task Button not found in the DOM.");
+    } else {
+        assignTaskButton.addEventListener("click", assignTask);
+        console.log("✅ Assign Task Button linked successfully.");
+    }
 
     async function loadTasks() {
         try {
@@ -9,50 +18,26 @@ document.addEventListener("DOMContentLoaded", function () {
                 alert("You must be logged in.");
                 return;
             }
-    
+
             console.log(`📤 Fetching tasks for user: ${loggedInUser.username}`);
-    
-            const response = await fetch(
-                `http://localhost:3000/tasks?username=${loggedInUser.username}&role=${loggedInUser.role}`
-            );
+
+            const response = await fetch(`${API_URL}/tasks?username=${loggedInUser.username}&role=${loggedInUser.role}`);
             if (!response.ok) throw new Error("Failed to fetch tasks.");
-            const { managerTasks, employeeTasks } = await response.json();
-    
-            console.log("✅ Manager's Tasks:", managerTasks);
-            console.log("✅ Employee Tasks:", employeeTasks);
-    
-            // **Render Manager's Tasks**
-            document.getElementById("managerTasksTableBody").innerHTML = managerTasks.length === 0
+            let tasks = await response.json();
+
+            console.log("✅ Tasks received:", tasks);
+
+            taskTable.innerHTML = tasks.length === 0
                 ? "<tr><td colspan='7'>No tasks assigned.</td></tr>"
-                : managerTasks.map(task => `
+                : tasks.map(task => `
                     <tr>
                         <td>${task.title}</td>
                         <td>${task.description}</td>
                         <td>${task.startDate}</td>
                         <td>${task.endDate}</td>
                         <td>${task.status}</td>
-                        <td>${task.source}</td>
+                        <td>${task.assignedTo || "Unknown"}</td>
                         <td>
-                            <button onclick="editTask(${task.id})">✏️ Edit</button>
-                            <button onclick="deleteTask(${task.id})">🗑 Delete</button>
-                        </td>
-                    </tr>
-                `).join("");
-    
-            // **Render Employees' Tasks**
-            document.getElementById("employeeTasksTableBody").innerHTML = employeeTasks.length === 0
-                ? "<tr><td colspan='7'>No tasks assigned to employees.</td></tr>"
-                : employeeTasks.map(task => `
-                    <tr>
-                        <td>${task.title}</td>
-                        <td>${task.description}</td>
-                        <td>${task.startDate}</td>
-                        <td>${task.endDate}</td>
-                        <td>${task.status}</td>
-                        <td>${task.source}</td>
-                        <td>${task.assignedTo}</td>
-                        <td>
-                            <button onclick="editTask(${task.id})">✏️ Edit</button>
                             <button onclick="deleteTask(${task.id})">🗑 Delete</button>
                         </td>
                     </tr>
@@ -63,40 +48,161 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     async function assignTask() {
+        console.log("📌 Assign Task function triggered.");
+
         const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
-        if (!loggedInUser || (loggedInUser.role !== "Manager" && loggedInUser.role !== "Admin")) {
-            alert("Only Managers/Admins can assign tasks.");
+        if (!loggedInUser || loggedInUser.role !== "Manager") {
+            alert("Only Managers can assign tasks.");
             return;
         }
-    
+
+        // Ensure the task title input field is found and its value is captured correctly
+        const taskTitleInput = document.getElementById("taskTitle");
+        if (!taskTitleInput) {
+            console.error("❌ ERROR: Task title input field not found in the DOM.");
+            alert("Task title input field is missing.");
+            return;
+        }
+
+        const taskTitle = taskTitleInput.value.trim();
+        console.log("📌 Task Title Retrieved:", taskTitle);
+
+        if (!taskTitle) {
+            alert("Task title is required.");
+            return;
+        }
+
+        const assignedToUsername = document.getElementById("assignedTo").value.trim();
+        if (!assignedToUsername) {
+            alert("Please enter an employee's username.");
+            return;
+        }
+
+        const taskDescription = document.getElementById("taskDescription").value.trim();
+        const startDate = document.getElementById("startDate").value;
+        const endDate = document.getElementById("endDate").value;
+        const taskStatus = document.getElementById("taskStatus").value || "Pending";
+
         const newTask = {
-            title: document.getElementById("taskTitle").value.trim(),
-            description: document.getElementById("taskDescription").value.trim(),
-            startDate: document.getElementById("startDate").value,
-            endDate: document.getElementById("endDate").value,
-            status: document.getElementById("taskStatus").value || "Pending",
-            assignedTo: document.getElementById("assignedTo").value.trim(),
-            createdBy: loggedInUser.firstName,
-            role: loggedInUser.role // "Manager" or "Admin"
+            title: taskTitle,
+            description: taskDescription,
+            startDate: startDate,
+            endDate: endDate,
+            status: taskStatus,
+            assignedTo: assignedToUsername,
+            createdBy: loggedInUser.username,
+            createdByName: loggedInUser.firstName,
+            role: loggedInUser.role
         };
-    
+
+        console.log("📤 Sending Task to API:", newTask);
+
         try {
             const response = await fetch("http://localhost:3000/tasks", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(newTask)
             });
-            if (!response.ok) throw new Error("Failed to assign task.");
-    
-            alert("Task assigned successfully!");
-            loadAllTasks();  
+
+            if (!response.ok) {
+                const errorMessage = await response.text();
+                throw new Error(`Failed to assign task: ${errorMessage}`);
+            }
+
+            alert("✅ Task assigned successfully!");
+            loadTasks();
             closeAssignTaskModal();
         } catch (error) {
             console.error("❌ Error assigning task:", error);
+            alert(`Task assignment failed: ${error.message}`);
         }
     }
+
+    window.editTask = async function (taskId) {
+        try {
+            console.log(`🛠 Fetching task ${taskId} for editing...`);
     
+            const response = await fetch(`http://localhost:3000/tasks/${taskId}`);
+            if (!response.ok) throw new Error("Failed to fetch task details.");
+            const task = await response.json();
     
+            console.log("✅ Task data:", task);
     
-    loadAllTasks();
+            document.getElementById("editTaskId").value = task.id;
+            document.getElementById("editTaskTitle").value = task.title;
+            document.getElementById("editTaskDescription").value = task.description;
+            document.getElementById("editStartDate").value = task.startDate;
+            document.getElementById("editEndDate").value = task.endDate;
+            document.getElementById("editTaskStatus").value = task.status;
+    
+            document.getElementById("editTaskModal").style.display = "block"; 
+        } catch (error) {
+            console.error("❌ Error fetching task details:", error);
+        }
+    };
+
+    window.updateTask = async function () {
+        const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
+        const taskId = document.getElementById("editTaskId").value;
+    
+        const updatedTask = {
+            username: loggedInUser.username, 
+            title: document.getElementById("editTaskTitle").value.trim(),
+            description: document.getElementById("editTaskDescription").value.trim(),
+            startDate: document.getElementById("editStartDate").value,
+            endDate: document.getElementById("editEndDate").value,
+            status: document.getElementById("editTaskStatus").value
+        };
+    
+        try {
+            const response = await fetch(`http://localhost:3000/tasks/${taskId}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(updatedTask)
+            });
+    
+            if (!response.ok) throw new Error("Failed to update task.");
+            const data = await response.json();
+            console.log("Task updated:", data);
+    
+            loadTasks();
+            closeEditTaskModal();
+        } catch (error) {
+            console.error("❌ Error updating task:", error);
+        }
+    };
+    
+    window.closeEditTaskModal = function () {
+        document.getElementById("editTaskModal").style.display = "none";
+    };
+
+
+
+    loadTasks();
 });
+
+function openAssignTaskModal() {
+    const modal = document.getElementById("assignTaskModal");
+    if (modal) {
+        modal.style.display = "block";
+        console.log("✅ Assign Task Modal Opened");
+    } else {
+        console.error("❌ ERROR: Assign Task Modal not found in DOM.");
+    }
+}
+
+function closeAssignTaskModal() {
+    const modal = document.getElementById("assignTaskModal");
+    if (modal) {
+        modal.style.display = "none";
+        console.log("✅ Assign Task Modal Closed");
+    } else {
+        console.error("❌ ERROR: Assign Task Modal not found in DOM.");
+    }
+}
+
+window.openAssignTaskModal = openAssignTaskModal;
+window.closeAssignTaskModal = closeAssignTaskModal;
+window.assignTask = assignTask;
+window.editTask = editTask;
+window.updateTask = updateTask;

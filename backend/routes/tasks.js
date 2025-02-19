@@ -103,43 +103,29 @@ router.get("/:id", (req, res) => {
 router.post("/", (req, res) => {
     const tasks = loadTasks();
     const users = loadUsers();
-    const { title, description, startDate, endDate, status, assignedTo, createdBy, role } = req.body;
+    const { title, description, startDate, endDate, status, assignedTo, assignedToName, createdBy, createdByName, role } = req.body;
+
+    console.log("🟢 Task Assignment Request Received:", req.body);
 
     if (!title || !createdBy || !role) {
         return res.status(400).json({ message: "Missing required fields (title, createdBy, role)." });
     }
 
-    // Determine final assigned user
     let assignedToFinal = assignedTo || createdBy;
 
-    // Validate permissions
-    if (role === "Employee") {
-        // Employee can only create tasks for themselves
-        if (assignedToFinal !== createdBy) {
-            return res.status(403).json({ message: "Employees can only add tasks for themselves." });
-        }
-    } else if (role === "Manager") {
-        // Manager can assign tasks to themselves or employees in same office
+    if (role === "Manager") {
         const manager = users.find(u => u.username === createdBy);
         if (!manager) {
-            return res.status(404).json({ message: "Manager not found in user list." });
+            return res.status(404).json({ message: "Manager not found." });
         }
-        // If manager is assigning to someone else, ensure it’s an employee in the same office
-        if (assignedToFinal !== createdBy) {
-            const managerOffice = manager.office;
-            const targetUser = users.find(u => u.username === assignedToFinal);
-            if (!targetUser || targetUser.office !== managerOffice) {
-                return res.status(403).json({ message: "Manager can only assign tasks to employees in their office." });
-            }
+        const managerOffice = manager.office;
+        const targetUser = users.find(u => u.username === assignedToFinal);
+
+        if (!targetUser || targetUser.office !== managerOffice) {
+            return res.status(403).json({ message: "Manager can only assign tasks to employees in their office." });
         }
-    } else if (role === "Admin") {
-        // Admin can assign tasks to anyone, no restriction
-    } else {
-        // If role is something else or missing
-        return res.status(403).json({ message: "Invalid role or permission." });
     }
 
-    // Create new task
     const newTask = {
         id: tasks.length > 0 ? tasks[tasks.length - 1].id + 1 : 1,
         title,
@@ -148,14 +134,18 @@ router.post("/", (req, res) => {
         endDate,
         status: status || "Pending",
         assignedTo: assignedToFinal,
-        createdBy
+        assignedToName,  // Stores first name
+        createdBy,
+        createdByName // Stores first name of creator
     };
+
+    console.log("✅ Task Successfully Created:", newTask);
 
     tasks.push(newTask);
     saveTasks(tasks);
-
     res.json({ message: "Task added successfully", task: newTask });
 });
+
 
 // **PUT: Update an existing task**
 router.put("/:id", (req, res) => {

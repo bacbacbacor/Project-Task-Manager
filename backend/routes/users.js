@@ -1,122 +1,119 @@
-const express = require("express");
-const fs = require("fs");
-const path = require("path");
-
+const express = require('express');
 const router = express.Router();
-const usersFilePath = path.join(__dirname, "../data/users.json");
+const fs = require('fs');
 
-
+// Function to load users from users.json
 const loadUsers = () => {
-    if (!fs.existsSync(usersFilePath)) {
-        fs.writeFileSync(usersFilePath, JSON.stringify([])); // Create empty file if missing
-    }
-    return JSON.parse(fs.readFileSync(usersFilePath));
+    const data = fs.readFileSync('data/users.json', 'utf-8');
+    return JSON.parse(data);
 };
-
-
-const saveUsers = (users) => {
-    fs.writeFileSync(usersFilePath, JSON.stringify(users, null, 2));
-};
-
 
 router.get("/", (req, res) => {
-    res.json(loadUsers());
+    try {
+        let users = loadUsers();
+
+        // Ensure all users have role and office before sending
+        users = users.map(user => ({
+            id: user.id,
+            username: user.username,
+            role: user.role || "Employee", // Default to Employee if missing
+            office: user.office || "Unknown", // Default office if missing
+            firstName: user.firstName || "",
+            lastName: user.lastName || "",
+            number: user.number || "",
+            address: user.address || "",
+            birthday: user.birthday || ""
+        }));
+
+        console.log("✅ Sending users with role & office:", users);
+        res.json(users);
+    } catch (error) {
+        console.error("❌ Error loading users:", error);
+        res.status(500).json({ error: "Failed to load users" });
+    }
 });
 
+// ✅ Additional User Routes (Unchanged)
+router.get("/:username", (req, res) => {
+    try {
+        const users = loadUsers();
+        const user = users.find(u => u.username === req.params.username);
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+        res.json(user);
+    } catch (error) {
+        console.error("❌ Error retrieving user:", error);
+        res.status(500).json({ error: "Failed to retrieve user" });
+    }
+});
 
+// ✅ Route to Add a New User
 router.post("/", (req, res) => {
-    const users = loadUsers();
-    
-    
-    const newId = users.length > 0 ? users[users.length - 1].id + 1 : 1;
+    try {
+        let users = loadUsers();
+        const newUser = {
+            id: users.length + 1,
+            username: req.body.username,
+            password: req.body.password,
+            role: req.body.role || "Employee", // Default to Employee
+            office: req.body.office || "Unknown", // Default office
+            firstName: req.body.firstName || "",
+            lastName: req.body.lastName || "",
+            number: req.body.number || "",
+            address: req.body.address || "",
+            birthday: req.body.birthday || ""
+        };
 
-   
-    const newUsername = `user${newId}`;
-    const newUser = {
-        id: newId,
-        username: newUsername,
-        password: "default123", 
-        role: req.body.role,
-        office: req.body.office,
-        firstName: req.body.firstName,
-        lastName: req.body.lastName,
-        number: req.body.number,
-        address: req.body.address,
-        birthday: req.body.birthday
-    };
-
-    users.push(newUser);
-    saveUsers(users);
-    
-    res.json(newUser);
-});
-
-
-router.delete("/:id", (req, res) => {
-    let users = loadUsers();
-    const userId = parseInt(req.params.id);
-    users = users.filter(user => user.id !== userId);
-    saveUsers(users);
-    res.json({ message: "User deleted successfully" });
-});
-
-router.post("/update-password", (req, res) => {
-    const { username, newPassword } = req.body;
-    let users = loadUsers();
-
-    let user = users.find(u => u.username === username);
-    if (!user) {
-        return res.status(404).json({ message: "User not found" });
+        users.push(newUser);
+        fs.writeFileSync('data/users.json', JSON.stringify(users, null, 2));
+        console.log("✅ New user added:", newUser);
+        res.status(201).json(newUser);
+    } catch (error) {
+        console.error("❌ Error adding user:", error);
+        res.status(500).json({ error: "Failed to add user" });
     }
-
-    user.password = newPassword; 
-    saveUsers(users);
-
-    res.json({ message: "Password updated successfully" });
 });
 
-router.put("/:id", (req, res) => {
-    let users = loadUsers();
-    const userId = parseInt(req.params.id);
-    let userIndex = users.findIndex(u => u.id === userId);
+// ✅ Route to Update a User
+router.put("/:username", (req, res) => {
+    try {
+        let users = loadUsers();
+        const index = users.findIndex(u => u.username === req.params.username);
 
-    if (userIndex === -1) {
-        return res.status(404).json({ message: "User not found" });
+        if (index === -1) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        users[index] = { ...users[index], ...req.body };
+        fs.writeFileSync('data/users.json', JSON.stringify(users, null, 2));
+
+        console.log("✅ User updated:", users[index]);
+        res.json(users[index]);
+    } catch (error) {
+        console.error("❌ Error updating user:", error);
+        res.status(500).json({ error: "Failed to update user" });
     }
-
-  
-    users[userIndex] = { ...users[userIndex], ...req.body };
-
-    saveUsers(users);
-    res.json({ message: "User updated successfully", user: users[userIndex] });
 });
 
-router.put("/:id", (req, res) => {
-    let users = loadUsers();
-    const userId = parseInt(req.params.id);
-    let userIndex = users.findIndex(u => u.id === userId);
+// ✅ Route to Delete a User
+router.delete("/:username", (req, res) => {
+    try {
+        let users = loadUsers();
+        const filteredUsers = users.filter(u => u.username !== req.params.username);
 
-    if (userIndex === -1) {
-        return res.status(404).json({ message: "User not found" });
+        if (users.length === filteredUsers.length) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        fs.writeFileSync('data/users.json', JSON.stringify(filteredUsers, null, 2));
+
+        console.log("✅ User deleted:", req.params.username);
+        res.status(204).send();
+    } catch (error) {
+        console.error("❌ Error deleting user:", error);
+        res.status(500).json({ error: "Failed to delete user" });
     }
-
-   
-    users[userIndex] = { ...users[userIndex], ...req.body };
-
-    saveUsers(users);
-    res.json({ message: "User updated successfully", user: users[userIndex] });
-});
-
-router.get("/:id", (req, res) => {
-    const users = loadUsers();
-    const userId = parseInt(req.params.id);
-    const user = users.find(u => u.id === userId);
-
-    if (!user) {
-        return res.status(404).json({ message: "User not found" });
-    }
-
-    res.json(user);
 });
 
 module.exports = router;

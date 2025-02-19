@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manager Dashboard</title>
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
     <header>
         <h1>Manager Dashboard</h1>
@@ -15,92 +17,124 @@
         <h2>Welcome, <span id="managerName"></span>!</h2>
     </main>
     <h2>My Tasks</h2>
-<button onclick="openTaskModal()">➕ Add Task</button>
+    <button onclick="openTaskModal()">➕ Add Task</button>
 
-<table id="taskTable">
-    <thead>
-        <tr>
-            <th>Title</th>
-            <th>Description</th>
-            <th>Start Date</th>
-            <th>End Date</th>
-            <th>Status</th>
-            <th>Assigned by</th>
-            <th>Assigned To</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody></tbody>
-</table>
+    <table id="taskTable">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Status</th>
+                <th>Assigned by</th>
+                <th>Assigned To</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
 
-<!-- Add Task Modal -->
-<div id="taskModal" class="modal">
+    <!-- Add Task Modal -->
+    <div id="taskModal" class="modal">
+        <div class="modal-content">
+            <h2>Add Task</h2>
+            <label for="taskTitle">Title:</label>
+            <input type="text" id="taskTitle" placeholder="Enter task title" required>
+
+            <label for="taskDescription">Description:</label>
+            <textarea id="taskDescription"></textarea>
+
+            <label for="startDate">Start Date:</label>
+            <input type="date" id="startDate">
+
+            <label for="endDate">End Date:</label>
+            <input type="date" id="endDate">
+
+            <label for="taskStatus">Status:</label>
+            <select id="taskStatus">
+                <option value="Pending">Pending</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Completed">Completed</option>
+            </select>
+
+            <button onclick="addTask()">Save Task</button>
+            <button onclick="closeTaskModal()">Cancel</button>
+        </div>
+    </div>
+
+
+
+    <button onclick="openAssignTaskModal()">➕ Assign Task</button>
+    <!-- Assign Task Modal -->
+    <div id="assignTaskModal" class="modal">
+        <div class="modal-content">
+            <h2>Assign a Task to an Employee</h2>
+            <span class="close" onclick="closeAssignTaskModal()">&times;</span>
+
+            <label for="taskTitle">Title:</label>
+            <input type="text" id="taskTitle" placeholder="Enter task title" required>
+
+            <label for="taskDescription">Description:</label>
+            <textarea id="taskDescription" required></textarea>
+
+            <label for="startDate">Start Date:</label>
+            <input type="date" id="startDate" required>
+
+            <label for="endDate">End Date:</label>
+            <input type="date" id="endDate" required>
+
+            <label for="taskStatus">Status:</label>
+            <select id="taskStatus">
+                <option value="Pending">Pending</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Completed">Completed</option>
+            </select>
+
+            <label for="assignedTo">Assign to (Enter Username):</label>
+            <input type="text" id="assignedTo" placeholder="Enter employee username" required>
+            
+
+            <button id="assignTaskButton" onclick="assignTask()">Assign Task</button>
+            <button onclick="closeAssignTaskModal()">Cancel</button>
+        </div>
+    </div>
+    <!-- Edit Task Modal -->
+<div id="editTaskModal" class="modal">
     <div class="modal-content">
-        <h2>Add Task</h2>
-        <label for="taskTitle">Title:</label>
-        <input type="text" id="taskTitle">
+        <h2>Edit Task</h2>
+        <label for="editTaskTitle">Title:</label>
+        <input type="text" id="editTaskTitle" required>
 
-        <label for="taskDescription">Description:</label>
-        <textarea id="taskDescription"></textarea>
+        <label for="editTaskDescription">Description:</label>
+        <textarea id="editTaskDescription"></textarea>
 
-        <label for="startDate">Start Date:</label>
-        <input type="date" id="startDate">
+        <label for="editStartDate">Start Date:</label>
+        <input type="date" id="editStartDate">
 
-        <label for="endDate">End Date:</label>
-        <input type="date" id="endDate">
+        <label for="editEndDate">End Date:</label>
+        <input type="date" id="editEndDate">
 
-        <label for="taskStatus">Status:</label>
-        <select id="taskStatus">
+        <label for="editTaskStatus">Status:</label>
+        <select id="editTaskStatus">
             <option value="Pending">Pending</option>
             <option value="In Progress">In Progress</option>
             <option value="Completed">Completed</option>
         </select>
 
-        <button onclick="addTask()">Save Task</button>
-        <button onclick="closeTaskModal()">Cancel</button>
+        <input type="hidden" id="editTaskId">
+        
+        <button onclick="updateTask()">Save Changes</button>
+        <button onclick="closeEditTaskModal()">Cancel</button>
     </div>
 </div>
 
 
 
-<button onclick="openAssignTaskModal()">➕ Assign Task</button>
-<!-- Assign Task Modal -->
-<div id="assignTaskModal" class="modal">
-    <div class="modal-content">
-        <h2>Assign a Task to an Employee</h2>
-        <span class="close" onclick="closeAssignTaskModal()">&times;</span>
+    <script src="js/managerTaskManager.js"></script>
 
-        <label for="taskTitle">Title:</label>
-        <input type="text" id="taskTitle" required>
-
-        <label for="taskDescription">Description:</label>
-        <textarea id="taskDescription" required></textarea>
-
-        <label for="startDate">Start Date:</label>
-        <input type="date" id="startDate" required>
-
-        <label for="endDate">End Date:</label>
-        <input type="date" id="endDate" required>
-
-        <label for="taskStatus">Status:</label>
-        <select id="taskStatus">
-            <option value="Pending">Pending</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Completed">Completed</option>
-        </select>
-
-        <label for="assignedTo">Assign to (Employee Username):</label>
-        <input type="text" id="assignedTo" required>
-
-        <button onclick="assignTask()">Assign Task</button>
-        <button onclick="closeAssignTaskModal()">Cancel</button>
-    </div>
-</div>
-
-
-
-<script src="js/adminTaskManager.js"></script>
     <script src="js/logout.js"></script>
     <script src="js/taskManager.js"></script>
 </body>
+
 </html>
