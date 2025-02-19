@@ -37,6 +37,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         <td>${task.endDate}</td>
                         <td>${task.status}</td>
                         <td>${task.assignedTo}</td>
+                        <td>${task.createdBy}</td>
                         <td>
                             <button onclick="deleteTask(${task.id})">🗑 Delete</button>
                         </td>
@@ -59,7 +60,7 @@ document.addEventListener("DOMContentLoaded", function () {
         assignTaskModal.style.display = "none";
     };
 
-   
+
     window.assignTask = async function () {
         const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
         if (!loggedInUser || (loggedInUser.role !== "Admin" && loggedInUser.role !== "Manager")) {
@@ -74,7 +75,7 @@ document.addEventListener("DOMContentLoaded", function () {
             endDate: document.getElementById("endDate").value,
             status: document.getElementById("taskStatus").value,
             assignedTo: document.getElementById("assignedTo").value.trim(),
-            createdBy: loggedInUser.username,
+            createdBy: loggedInUser.firstName,
             role: loggedInUser.role
         };
 

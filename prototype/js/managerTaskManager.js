@@ -50,6 +50,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         <td>${task.endDate}</td>
                         <td>${task.status}</td>
                         <td>${task.source}</td>
+                        <td>${task.assignedTo}</td>
                         <td>
                             <button onclick="editTask(${task.id})">✏️ Edit</button>
                             <button onclick="deleteTask(${task.id})">🗑 Delete</button>
@@ -60,6 +61,41 @@ document.addEventListener("DOMContentLoaded", function () {
             console.error("❌ Error loading tasks:", error);
         }
     }
+
+    async function assignTask() {
+        const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
+        if (!loggedInUser || (loggedInUser.role !== "Manager" && loggedInUser.role !== "Admin")) {
+            alert("Only Managers/Admins can assign tasks.");
+            return;
+        }
+    
+        const newTask = {
+            title: document.getElementById("taskTitle").value.trim(),
+            description: document.getElementById("taskDescription").value.trim(),
+            startDate: document.getElementById("startDate").value,
+            endDate: document.getElementById("endDate").value,
+            status: document.getElementById("taskStatus").value || "Pending",
+            assignedTo: document.getElementById("assignedTo").value.trim(),
+            createdBy: loggedInUser.firstName,
+            role: loggedInUser.role // "Manager" or "Admin"
+        };
+    
+        try {
+            const response = await fetch("http://localhost:3000/tasks", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(newTask)
+            });
+            if (!response.ok) throw new Error("Failed to assign task.");
+    
+            alert("Task assigned successfully!");
+            loadAllTasks();  
+            closeAssignTaskModal();
+        } catch (error) {
+            console.error("❌ Error assigning task:", error);
+        }
+    }
+    
     
     
     loadAllTasks();

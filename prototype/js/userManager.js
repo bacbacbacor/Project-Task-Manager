@@ -277,8 +277,8 @@ window.openUserModal = function () {
             startDate: document.getElementById("startDate").value,
             endDate: document.getElementById("endDate").value,
             status: document.getElementById("taskStatus").value,
-            assignedTo: loggedInUser.username,
-            createdBy: loggedInUser.username
+            assignedTo: loggedInUser.firstName,
+            createdBy: loggedInUser.firstName
         };
     
         if (!newTask.title || !newTask.startDate || !newTask.endDate) {

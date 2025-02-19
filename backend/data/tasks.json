@@ -1,103 +1,32 @@
 [
   {
     "id": 1,
-    "title": "Performance Review",
-    "description": "stack stack",
-    "startDate": "2001-12-11",
-    "endDate": "2001-01-08",
-    "status": "Pending",
-    "assignedTo": "user2",
-    "createdBy": "user2",
-    "username": "user2"
+    "title": "qqqqq",
+    "description": "qqqqq",
+    "startDate": "1111-11-11",
+    "endDate": "1111-02-22",
+    "status": "In Progress",
+    "assignedTo": "user3",
+    "createdBy": "John"
   },
   {
     "id": 2,
-    "title": "Set Bonus",
-    "description": "test test test",
-    "startDate": "2301-02-12",
-    "endDate": "0123-12-12",
-    "status": "In Progress",
-    "assignedTo": "user2",
-    "createdBy": "user2"
+    "title": "wwwwww",
+    "description": "wwwwwwwwwwwwwwwwwwwwww",
+    "startDate": "1232-12-31",
+    "endDate": "1232-12-31",
+    "status": "Completed",
+    "assignedTo": "user3",
+    "createdBy": "user3"
   },
   {
     "id": 3,
-    "title": "User 3 Task - 1",
-    "description": "task task task",
-    "startDate": "1111-11-11",
-    "endDate": "1111-11-11",
-    "status": "In Progress",
-    "assignedTo": "user3",
-    "createdBy": "user3"
-  },
-  {
-    "id": 4,
-    "title": "user3 task - 2",
-    "description": "task task task",
-    "startDate": "1111-02-11",
-    "endDate": "1111-11-11",
-    "status": "Pending",
-    "assignedTo": "user3",
-    "createdBy": "user3"
-  },
-  {
-    "id": 5,
-    "title": "User4 Task - 1",
-    "description": "task task task",
-    "startDate": "1111-11-11",
-    "endDate": "1111-11-11",
+    "title": "rrrr",
+    "description": "eeeeeeeeeeee",
+    "startDate": "1232-12-31",
+    "endDate": "1232-12-31",
     "status": "Completed",
-    "assignedTo": "user4",
-    "createdBy": "user4"
-  },
-  {
-    "id": 6,
-    "title": "User6 Task- 1",
-    "description": "task task task",
-    "startDate": "1222-12-12",
-    "endDate": "1222-01-21",
-    "status": "In Progress",
-    "assignedTo": "user6",
-    "createdBy": "user6"
-  },
-  {
-    "id": 7,
-    "title": "test assign to user 6",
-    "description": "assign to user 6",
-    "startDate": "1111-11-11",
-    "endDate": "1111-11-11",
-    "status": "In Progress",
-    "assignedTo": "user6",
-    "createdBy": "admin"
-  },
-  {
-    "id": 8,
-    "title": "X Mas party Plannin",
-    "description": "plan pla  plan",
-    "startDate": "2222-02-22",
-    "endDate": "0002-02-22",
-    "status": "In Progress",
-    "assignedTo": "user3",
-    "createdBy": "admin"
-  },
-  {
-    "id": 9,
-    "title": "under IT",
-    "description": "under IT",
-    "startDate": "1111-11-11",
-    "endDate": "2222-11-11",
-    "status": "In Progress",
-    "assignedTo": "user9",
-    "createdBy": "admin"
-  },
-  {
-    "id": 10,
-    "title": "under 9 still",
-    "description": "under 9 still",
-    "startDate": "3232-03-22",
-    "endDate": "1231-12-31",
-    "status": "Completed",
-    "assignedTo": "user10",
-    "createdBy": "admin"
+    "assignedTo": "user2",
+    "createdBy": "user2"
   }
 ]

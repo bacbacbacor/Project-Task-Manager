@@ -2,13 +2,14 @@ const express = require("express");
 const fs = require("fs");
 const path = require("path");
 const router = express.Router();
+
 const tasksFilePath = path.join(__dirname, "../data/tasks.json");
-const usersFilePath = path.join(__dirname, "../data/users.json"); // Add users.json
+const usersFilePath = path.join(__dirname, "../data/users.json");
 
 // Load tasks from file
 const loadTasks = () => {
     if (!fs.existsSync(tasksFilePath)) {
-        fs.writeFileSync(tasksFilePath, JSON.stringify([])); // Create empty file if missing
+        fs.writeFileSync(tasksFilePath, JSON.stringify([]));
     }
     return JSON.parse(fs.readFileSync(tasksFilePath));
 };
@@ -16,7 +17,7 @@ const loadTasks = () => {
 // Load users from file
 const loadUsers = () => {
     if (!fs.existsSync(usersFilePath)) {
-        fs.writeFileSync(usersFilePath, JSON.stringify([])); // Create empty file if missing
+        fs.writeFileSync(usersFilePath, JSON.stringify([]));
     }
     return JSON.parse(fs.readFileSync(usersFilePath));
 };
@@ -26,74 +27,66 @@ const saveTasks = (tasks) => {
     fs.writeFileSync(tasksFilePath, JSON.stringify(tasks, null, 2));
 };
 
-// **GET: Get tasks with first names instead of usernames**
+// **GET: Retrieve tasks (Admins see all, Managers see employees in same office, Employees see own)**
 router.get("/", (req, res) => {
     try {
         const tasks = loadTasks();
         const users = loadUsers();
-        const username = req.query.username;
-        const role = req.query.role;
+        const { username, role } = req.query;
 
         if (!username || !role) {
             return res.status(400).json({ message: "Username and role are required." });
         }
 
-        // Convert usernames to first names
-        const getUserFullName = (username) => {
-            const user = users.find(user => user.username === username);
-            return user ? `${user.firstName} ${user.lastName}` : username;
-        };
-
         let userTasks;
         if (role === "Admin") {
-            userTasks = tasks.map(task => ({
-                ...task,
-                assignedTo: getUserFullName(task.assignedTo),
-                createdBy: getUserFullName(task.createdBy),
-            }));
+            userTasks = tasks;
         } else if (role === "Manager") {
-            const manager = users.find(user => user.username === username);
+            const manager = users.find(u => u.username === username);
             if (!manager) {
                 return res.status(404).json({ message: "Manager not found." });
             }
             const managerOffice = manager.office;
 
-            const employeesInOffice = users
-                .filter(user => user.role === "Employee" && user.office === managerOffice)
-                .map(user => user.username);
+            // employees in same office
+            const employees = users
+                .filter(u => u.role === "Employee" && u.office === managerOffice)
+                .map(u => u.username);
 
-            userTasks = tasks
-                .filter(task => employeesInOffice.includes(task.assignedTo) || task.assignedTo === username)
-                .map(task => ({
-                    ...task,
-                    assignedTo: getUserFullName(task.assignedTo),
-                    createdBy: getUserFullName(task.createdBy),
-                }));
+            userTasks = tasks.filter(t =>
+                t.assignedTo === username || employees.includes(t.assignedTo)
+            );
         } else {
-            userTasks = tasks
-                .filter(task => task.assignedTo === username)
-                .map(task => ({
-                    ...task,
-                    assignedTo: getUserFullName(task.assignedTo),
-                    createdBy: getUserFullName(task.createdBy),
-                }));
+            // role === "Employee"
+            userTasks = tasks.filter(t => t.assignedTo === username);
         }
+
+        // 1️⃣ Convert assignedTo username → assignedTo first name
+        // 2️⃣ Convert createdBy username → createdBy first name
+        const getFirstName = (un) => {
+            const user = users.find(u => u.username === un);
+            return user ? user.firstName : un;
+        };
+
+        userTasks = userTasks.map(task => ({
+            ...task,
+            assignedTo: getFirstName(task.assignedTo),
+            createdBy: getFirstName(task.createdBy)
+        }));
 
         res.json(userTasks);
     } catch (error) {
+        console.error("❌ GET tasks error:", error);
         res.status(500).json({ message: "Error loading tasks." });
     }
 });
 
-module.exports = router;
-
-
-// **GET: Get a specific task by ID**
+// **GET: Retrieve a single task by ID**
 router.get("/:id", (req, res) => {
     try {
         const tasks = loadTasks();
         const taskId = parseInt(req.params.id);
-        const task = tasks.find(task => task.id === taskId);
+        const task = tasks.find(t => t.id === taskId);
 
         if (!task) {
             return res.status(404).json({ message: "Task not found." });
@@ -101,24 +94,52 @@ router.get("/:id", (req, res) => {
 
         res.json(task);
     } catch (error) {
+        console.error("❌ GET task by ID error:", error);
         res.status(500).json({ message: "Error loading task details." });
     }
 });
 
-// **POST: Add a new task**
+// **POST: Create / Assign Task**
 router.post("/", (req, res) => {
     const tasks = loadTasks();
+    const users = loadUsers();
     const { title, description, startDate, endDate, status, assignedTo, createdBy, role } = req.body;
 
-    if (!title || !assignedTo || !createdBy || !role) {
-        return res.status(400).json({ message: "Missing required fields." });
+    if (!title || !createdBy || !role) {
+        return res.status(400).json({ message: "Missing required fields (title, createdBy, role)." });
     }
 
-    // Only Admins & Managers can assign tasks
-    if (role !== "Admin" && role !== "Manager") {
-        return res.status(403).json({ message: "Only Admins and Managers can assign tasks." });
+    // Determine final assigned user
+    let assignedToFinal = assignedTo || createdBy;
+
+    // Validate permissions
+    if (role === "Employee") {
+        // Employee can only create tasks for themselves
+        if (assignedToFinal !== createdBy) {
+            return res.status(403).json({ message: "Employees can only add tasks for themselves." });
+        }
+    } else if (role === "Manager") {
+        // Manager can assign tasks to themselves or employees in same office
+        const manager = users.find(u => u.username === createdBy);
+        if (!manager) {
+            return res.status(404).json({ message: "Manager not found in user list." });
+        }
+        // If manager is assigning to someone else, ensure it’s an employee in the same office
+        if (assignedToFinal !== createdBy) {
+            const managerOffice = manager.office;
+            const targetUser = users.find(u => u.username === assignedToFinal);
+            if (!targetUser || targetUser.office !== managerOffice) {
+                return res.status(403).json({ message: "Manager can only assign tasks to employees in their office." });
+            }
+        }
+    } else if (role === "Admin") {
+        // Admin can assign tasks to anyone, no restriction
+    } else {
+        // If role is something else or missing
+        return res.status(403).json({ message: "Invalid role or permission." });
     }
 
+    // Create new task
     const newTask = {
         id: tasks.length > 0 ? tasks[tasks.length - 1].id + 1 : 1,
         title,
@@ -126,44 +147,47 @@ router.post("/", (req, res) => {
         startDate,
         endDate,
         status: status || "Pending",
-        assignedTo,
+        assignedTo: assignedToFinal,
         createdBy
     };
 
     tasks.push(newTask);
     saveTasks(tasks);
 
-    res.json({ message: "Task assigned successfully", task: newTask });
+    res.json({ message: "Task added successfully", task: newTask });
 });
 
 // **PUT: Update an existing task**
 router.put("/:id", (req, res) => {
-    let tasks = loadTasks();
+    const tasks = loadTasks();
+    const { username, role } = req.body;
     const taskId = parseInt(req.params.id);
-    let taskIndex = tasks.findIndex(task => task.id === taskId);
 
+    const taskIndex = tasks.findIndex(t => t.id === taskId);
     if (taskIndex === -1) {
         return res.status(404).json({ message: "Task not found." });
     }
 
-    const { username, role } = req.body;
-
-    // Ensure only the assigned user, creator, or Admin can edit the task
-    if (tasks[taskIndex].assignedTo !== username && tasks[taskIndex].createdBy !== username && role !== "Admin") {
-        return res.status(403).json({ message: "You can only edit your assigned or created tasks." });
+    // Only assigned user, creator, or Admin can edit
+    if (
+        tasks[taskIndex].assignedTo !== username &&
+        tasks[taskIndex].createdBy !== username &&
+        role !== "Admin"
+    ) {
+        return res.status(403).json({ message: "No permission to edit this task." });
     }
 
-    // Update task fields
     tasks[taskIndex] = { ...tasks[taskIndex], ...req.body };
     saveTasks(tasks);
+
     res.json({ message: "Task updated successfully", task: tasks[taskIndex] });
 });
 
-// **DELETE: Remove a task by ID**
+// **DELETE: Remove a task by ID**  
 router.delete("/:id", (req, res) => {
     let tasks = loadTasks();
     const taskId = parseInt(req.params.id);
-    tasks = tasks.filter(task => task.id !== taskId);
+    tasks = tasks.filter(t => t.id !== taskId);
     saveTasks(tasks);
     res.json({ message: "Task deleted successfully" });
 });

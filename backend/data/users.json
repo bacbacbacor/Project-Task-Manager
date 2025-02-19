@@ -20,103 +20,19 @@
     "firstName": "Keanu",
     "lastName": "Monterde",
     "number": "123",
-    "address": "Cebu",
+    "address": "123",
     "birthday": "1111-11-11"
   },
   {
     "id": 3,
     "username": "user3",
     "password": "123",
-    "role": "Manager",
-    "office": "HR Department",
-    "firstName": "Mark",
-    "lastName": "Rio",
-    "number": "123",
-    "address": "Mingla",
-    "birthday": "1020-07-07"
-  },
-  {
-    "id": 4,
-    "username": "user4",
-    "password": "123",
-    "role": "Manager",
-    "office": "Finance",
-    "firstName": "Enrique",
-    "lastName": "Reboqiuo",
-    "number": "321",
-    "address": "Mingla",
-    "birthday": "1232-12-21"
-  },
-  {
-    "id": 5,
-    "username": "user5",
-    "password": "default123",
-    "role": "Manager",
-    "office": "Marketing",
-    "firstName": "Jovani",
-    "lastName": "Lagare",
-    "number": "123312",
-    "address": "Mandaue",
-    "birthday": "3213-02-12"
-  },
-  {
-    "id": 6,
-    "username": "user6",
-    "password": "123",
     "role": "Employee",
     "office": "IT Department",
     "firstName": "Allen",
     "lastName": "Lozada",
-    "number": "456",
-    "address": "Guadalupe",
-    "birthday": "1234-02-13"
-  },
-  {
-    "id": 7,
-    "username": "user7",
-    "password": "default123",
-    "role": "Employee",
-    "office": "IT Department",
-    "firstName": "Noel",
-    "lastName": "Himenez",
     "number": "123",
-    "address": "Naga",
-    "birthday": "2213-02-12"
-  },
-  {
-    "id": 8,
-    "username": "user8",
-    "password": "default123",
-    "role": "Employee",
-    "office": "IT Department",
-    "firstName": "Marge",
-    "lastName": "Simpson",
-    "number": "12343",
-    "address": "Bikini Bottom",
-    "birthday": "2001-02-12"
-  },
-  {
-    "id": 9,
-    "username": "user9",
-    "password": "123",
-    "role": "Employee",
-    "office": "IT Department",
-    "firstName": "under IT",
-    "lastName": "under IT",
-    "number": "123",
-    "address": "under IT",
-    "birthday": "5555-05-05"
-  },
-  {
-    "id": 10,
-    "username": "user10",
-    "password": "default123",
-    "role": "Employee",
-    "office": "IT Department",
-    "firstName": "under 9 still",
-    "lastName": "under 9 still",
-    "number": "312123",
-    "address": "under 9 still",
-    "birthday": "3232-04-04"
+    "address": "123",
+    "birthday": "1231-02-22"
   }
 ]
