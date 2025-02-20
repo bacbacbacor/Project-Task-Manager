@@ -5,10 +5,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const API_URL = "http://localhost:3000";
 
     if (!assignTaskButton) {
-        console.error("❌ ERROR: Assign Task Button not found in the DOM.");
+        console.error("ERROR: Assign Task Button not found in the DOM.");
     } else {
         assignTaskButton.addEventListener("click", assignTask);
-        console.log("✅ Assign Task Button linked successfully.");
+        console.log("Assign Task Button linked successfully.");
     }
 
     async function loadTasks() {
@@ -19,13 +19,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-            console.log(`📤 Fetching tasks for user: ${loggedInUser.username}`);
+            console.log(`Fetching tasks for user: ${loggedInUser.username}`);
 
             const response = await fetch(`${API_URL}/tasks?username=${loggedInUser.username}&role=${loggedInUser.role}`);
             if (!response.ok) throw new Error("Failed to fetch tasks.");
             let tasks = await response.json();
 
-            console.log("✅ Tasks received:", tasks);
+            console.log("Tasks received:", tasks);
 
             taskTable.innerHTML = tasks.length === 0
                 ? "<tr><td colspan='7'>No tasks assigned.</td></tr>"
@@ -55,10 +55,9 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        // Ensure the task title input field is found and its value is captured correctly
         let taskTitleInput = document.querySelector("#assignTaskModal #taskTitle"); // More specific selector
         if (!taskTitleInput) {
-            console.error("❌ ERROR: Task title input field not found.");
+            console.error("ERROR: Task title input field not found.");
             alert("Task title input field is missing.");
             return;
         }
@@ -94,7 +93,7 @@ document.addEventListener("DOMContentLoaded", function () {
             role: loggedInUser.role
         };
 
-        console.log("📤 Sending Task to API:", newTask);
+        console.log("Sending Task to API:", newTask);
 
         try {
             const response = await fetch("http://localhost:3000/tasks", {
@@ -108,11 +107,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 throw new Error(`Failed to assign task: ${errorMessage}`);
             }   
 
-            alert("✅ Task assigned successfully!");
+            alert("Task assigned successfully!");
             loadTasks();
             closeAssignTaskModal();
         } catch (error) {
-            console.error("❌ Error assigning task:", error);
+            console.error("Error assigning task:", error);
             alert(`Task assignment failed: ${error.message}`);
         }
     }
@@ -125,7 +124,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (!response.ok) throw new Error("Failed to fetch task details.");
             const task = await response.json();
 
-            console.log("✅ Task data:", task);
+            console.log("Task data:", task);
 
             document.getElementById("editTaskId").value = task.id;
             document.getElementById("editTaskTitle").value = task.title;
@@ -136,7 +135,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             document.getElementById("editTaskModal").style.display = "block";
         } catch (error) {
-            console.error("❌ Error fetching task details:", error);
+            console.error("Error fetching task details:", error);
         }
     };
 
@@ -167,7 +166,7 @@ document.addEventListener("DOMContentLoaded", function () {
             loadTasks();
             closeEditTaskModal();
         } catch (error) {
-            console.error("❌ Error updating task:", error);
+            console.error("Error updating task:", error);
         }
     };
 
@@ -184,9 +183,9 @@ function openAssignTaskModal() {
     const modal = document.getElementById("assignTaskModal");
     if (modal) {
         modal.style.display = "block";
-        console.log("✅ Assign Task Modal Opened");
+        console.log("Assign Task Modal Opened");
     } else {
-        console.error("❌ ERROR: Assign Task Modal not found in DOM.");
+        console.error("ERROR: Assign Task Modal not found in DOM.");
     }
 }
 
@@ -194,9 +193,9 @@ function closeAssignTaskModal() {
     const modal = document.getElementById("assignTaskModal");
     if (modal) {
         modal.style.display = "none";
-        console.log("✅ Assign Task Modal Closed");
+        console.log("Assign Task Modal Closed");
     } else {
-        console.error("❌ ERROR: Assign Task Modal not found in DOM.");
+        console.error("ERROR: Assign Task Modal not found in DOM.");
     }
 }
 

@@ -19,5 +19,16 @@
     "status": "Pending",
     "assignedTo": "user3",
     "createdBy": "John"
+  },
+  {
+    "id": 3,
+    "title": "Task for It Employee",
+    "description": "No",
+    "startDate": "2025-02-20",
+    "endDate": "2025-03-19",
+    "status": "In Progress",
+    "assignedTo": "user4",
+    "createdBy": "user2",
+    "username": "user2"
   }
 ]

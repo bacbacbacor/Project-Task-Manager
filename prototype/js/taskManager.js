@@ -42,7 +42,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 taskTable.innerHTML += row;
             });
         } catch (error) {
-            console.error("❌ Error loading tasks:", error);
+            console.error("Error loading tasks:", error);
         }
     }
 
@@ -73,12 +73,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (!response.ok) throw new Error("Failed to add task.");
             const data = await response.json();
-            console.log("✅ Task added:", data);
+            console.log("Task added:", data);
 
             loadTasks();
             closeTaskModal();
         } catch (error) {
-            console.error("❌ Error adding task:", error);
+            console.error("Error adding task:", error);
         }
     };
 
@@ -103,9 +103,9 @@ document.addEventListener("DOMContentLoaded", function () {
             startDate: document.getElementById("startDate").value,
             endDate: document.getElementById("endDate").value,
             status: document.getElementById("taskStatus").value || "Pending",
-            assignedTo: loggedInUser.username, // Employee → self
+            assignedTo: loggedInUser.username, 
             createdBy: loggedInUser.username,
-            role: loggedInUser.role // "Employee"
+            role: loggedInUser.role 
         };
 
         try {
@@ -120,19 +120,19 @@ document.addEventListener("DOMContentLoaded", function () {
             loadTasks(); 
             closeTaskModal();
         } catch (error) {
-            console.error("❌ Error adding task:", error);
+            console.error("Error adding task:", error);
         }
     };
 
     window.editTask = async function (taskId) {
         try {
-            console.log(`🛠 Fetching task ${taskId} for editing...`);
+            console.log(`Fetching task ${taskId} for editing...`);
 
             const response = await fetch(`${API_URL}/${taskId}`);
             if (!response.ok) throw new Error("Failed to fetch task details.");
             const task = await response.json();
 
-            console.log("✅ Task data:", task);
+            console.log("Task data:", task);
 
             document.getElementById("editTaskId").value = task.id;
             document.getElementById("editTaskTitle").value = task.title;
@@ -143,7 +143,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             editTaskModal.style.display = "block"; 
         } catch (error) {
-            console.error("❌ Error fetching task details:", error);
+            console.error("Error fetching task details:", error);
         }
     };
 
@@ -179,7 +179,7 @@ document.addEventListener("DOMContentLoaded", function () {
             loadTasks();
             closeEditTaskModal();
         } catch (error) {
-            console.error("❌ Error updating task:", error);
+            console.error("Error updating task:", error);
         }
     };
 
@@ -188,7 +188,7 @@ document.addEventListener("DOMContentLoaded", function () {
             await fetch(`${API_URL}/${taskId}`, { method: "DELETE" });
             loadTasks();
         } catch (error) {
-            console.error("❌ Error deleting task:", error);
+            console.error("Error deleting task:", error);
         }
     };
 

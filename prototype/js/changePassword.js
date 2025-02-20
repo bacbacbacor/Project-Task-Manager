@@ -20,7 +20,6 @@ async function updatePassword() {
         return;
     }
 
-    // 🔹 **Prevent multiple submissions**
     if (localStorage.getItem("passwordChangeInProgress")) {
         return;
     }
@@ -39,7 +38,6 @@ async function updatePassword() {
         const data = await response.json();
         alert(data.message);
 
-        // 🔹 **Ensure session is fully cleared before redirect**
         localStorage.removeItem("loggedInUser");
         localStorage.removeItem("passwordChangeInProgress");
 

@@ -6,7 +6,6 @@ const router = express.Router();
 const tasksFilePath = path.join(__dirname, "../data/tasks.json");
 const usersFilePath = path.join(__dirname, "../data/users.json");
 
-// Load tasks from file
 const loadTasks = () => {
     if (!fs.existsSync(tasksFilePath)) {
         fs.writeFileSync(tasksFilePath, JSON.stringify([]));
@@ -14,7 +13,6 @@ const loadTasks = () => {
     return JSON.parse(fs.readFileSync(tasksFilePath));
 };
 
-// Load users from file
 const loadUsers = () => {
     if (!fs.existsSync(usersFilePath)) {
         fs.writeFileSync(usersFilePath, JSON.stringify([]));
@@ -22,12 +20,10 @@ const loadUsers = () => {
     return JSON.parse(fs.readFileSync(usersFilePath));
 };
 
-// Save tasks to file
 const saveTasks = (tasks) => {
     fs.writeFileSync(tasksFilePath, JSON.stringify(tasks, null, 2));
 };
 
-// **GET: Retrieve tasks (Admins see all, Managers see employees in same office, Employees see own)**
 router.get("/", (req, res) => {
     try {
         const tasks = loadTasks();
@@ -48,7 +44,6 @@ router.get("/", (req, res) => {
             }
             const managerOffice = manager.office;
 
-            // employees in same office
             const employees = users
                 .filter(u => u.role === "Employee" && u.office === managerOffice)
                 .map(u => u.username);
@@ -57,12 +52,9 @@ router.get("/", (req, res) => {
                 t.assignedTo === username || employees.includes(t.assignedTo)
             );
         } else {
-            // role === "Employee"
             userTasks = tasks.filter(t => t.assignedTo === username);
         }
 
-        // 1️⃣ Convert assignedTo username → assignedTo first name
-        // 2️⃣ Convert createdBy username → createdBy first name
         const getFirstName = (un) => {
             const user = users.find(u => u.username === un);
             return user ? user.firstName : un;
@@ -76,12 +68,11 @@ router.get("/", (req, res) => {
 
         res.json(userTasks);
     } catch (error) {
-        console.error("❌ GET tasks error:", error);
+        console.error("GET tasks error:", error);
         res.status(500).json({ message: "Error loading tasks." });
     }
 });
 
-// **GET: Retrieve a single task by ID**
 router.get("/:id", (req, res) => {
     try {
         const tasks = loadTasks();
@@ -94,7 +85,7 @@ router.get("/:id", (req, res) => {
 
         res.json(task);
     } catch (error) {
-        console.error("❌ GET task by ID error:", error);
+        console.error("GET task by ID error:", error);
         res.status(500).json({ message: "Error loading task details." });
     }
 });
@@ -109,22 +100,17 @@ router.post("/", (req, res) => {
         return res.status(400).json({ message: "Missing required fields (title, createdBy, role)." });
     }
 
-    // Determine final assigned user
     let assignedToFinal = assignedTo || createdBy;
 
-    // Validate permissions
     if (role === "Employee") {
-        // Employee can only create tasks for themselves
         if (assignedToFinal !== createdBy) {
             return res.status(403).json({ message: "Employees can only add tasks for themselves." });
         }
     } else if (role === "Manager") {
-        // Manager can assign tasks to themselves or employees in same office
         const manager = users.find(u => u.username === createdBy);
         if (!manager) {
             return res.status(404).json({ message: "Manager not found in user list." });
         }
-        // If manager is assigning to someone else, ensure it’s an employee in the same office
         if (assignedToFinal !== createdBy) {
             const managerOffice = manager.office;
             const targetUser = users.find(u => u.username === assignedToFinal);
@@ -133,13 +119,10 @@ router.post("/", (req, res) => {
             }
         }
     } else if (role === "Admin") {
-        // Admin can assign tasks to anyone, no restriction
     } else {
-        // If role is something else or missing
         return res.status(403).json({ message: "Invalid role or permission." });
     }
 
-    // Create new task
     const newTask = {
         id: tasks.length > 0 ? tasks[tasks.length - 1].id + 1 : 1,
         title,
@@ -157,7 +140,6 @@ router.post("/", (req, res) => {
     res.json({ message: "Task added successfully", task: newTask });
 });
 
-// **PUT: Update an existing task**
 router.put("/:id", (req, res) => {
     const tasks = loadTasks();
     const { username, role } = req.body;
@@ -168,7 +150,6 @@ router.put("/:id", (req, res) => {
         return res.status(404).json({ message: "Task not found." });
     }
 
-    // Only assigned user, creator, or Admin can edit
     if (
         tasks[taskIndex].assignedTo !== username &&
         tasks[taskIndex].createdBy !== username &&
@@ -183,7 +164,6 @@ router.put("/:id", (req, res) => {
     res.json({ message: "Task updated successfully", task: tasks[taskIndex] });
 });
 
-// **DELETE: Remove a task by ID**  
 router.delete("/:id", (req, res) => {
     let tasks = loadTasks();
     const taskId = parseInt(req.params.id);
