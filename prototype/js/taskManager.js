@@ -194,6 +194,3 @@ document.addEventListener("DOMContentLoaded", function () {
 
     loadTasks();
 });
-
-
-
