@@ -44,25 +44,5 @@
     "number": "123",
     "address": "32131",
     "birthday": "2001-11-22"
-  },
-  {
-    "id": 5,
-    "role": "Manager",
-    "office": "HR Department",
-    "firstName": "Shanine",
-    "lastName": "Abarquez",
-    "number": "123",
-    "address": "123",
-    "birthday": "2000-02-12"
-  },
-  {
-    "id": 6,
-    "role": "Employee",
-    "office": "HR Department",
-    "firstName": "Alexis",
-    "lastName": "Silva",
-    "number": "123123",
-    "address": "1231233",
-    "birthday": "2001-02-12"
   }
 ]

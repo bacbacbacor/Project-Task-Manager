@@ -25,15 +25,15 @@ router.get("/", (req, res) => {
             birthday: user.birthday || ""
         }));
 
-        console.log(" Sending users with role & office:", users);
+        console.log("✅ Sending users with role & office:", users);
         res.json(users);
     } catch (error) {
-        console.error(" Error loading users:", error);
+        console.error("❌ Error loading users:", error);
         res.status(500).json({ error: "Failed to load users" });
     }
 });
 
-//  Additional User Routes (Unchanged)
+// ✅ Additional User Routes (Unchanged)
 router.get("/:username", (req, res) => {
     try {
         const users = loadUsers();
@@ -43,12 +43,12 @@ router.get("/:username", (req, res) => {
         }
         res.json(user);
     } catch (error) {
-        console.error(" Error retrieving user:", error);
+        console.error("❌ Error retrieving user:", error);
         res.status(500).json({ error: "Failed to retrieve user" });
     }
 });
 
-// Route to Add a New User
+// ✅ Route to Add a New User
 router.post("/", (req, res) => {
     try {
         let users = loadUsers();
@@ -67,15 +67,15 @@ router.post("/", (req, res) => {
 
         users.push(newUser);
         fs.writeFileSync('data/users.json', JSON.stringify(users, null, 2));
-        console.log(" New user added:", newUser);
+        console.log("✅ New user added:", newUser);
         res.status(201).json(newUser);
     } catch (error) {
-        console.error(" Error adding user:", error);
+        console.error("❌ Error adding user:", error);
         res.status(500).json({ error: "Failed to add user" });
     }
 });
 
-//  Route to Update a User
+// ✅ Route to Update a User
 router.put("/:username", (req, res) => {
     try {
         let users = loadUsers();
@@ -88,15 +88,15 @@ router.put("/:username", (req, res) => {
         users[index] = { ...users[index], ...req.body };
         fs.writeFileSync('data/users.json', JSON.stringify(users, null, 2));
 
-        console.log(" User updated:", users[index]);
+        console.log("✅ User updated:", users[index]);
         res.json(users[index]);
     } catch (error) {
-        console.error(" Error updating user:", error);
+        console.error("❌ Error updating user:", error);
         res.status(500).json({ error: "Failed to update user" });
     }
 });
 
-//  Route to Delete a User
+// ✅ Route to Delete a User
 router.delete("/:username", (req, res) => {
     try {
         let users = loadUsers();
@@ -108,10 +108,10 @@ router.delete("/:username", (req, res) => {
 
         fs.writeFileSync('data/users.json', JSON.stringify(filteredUsers, null, 2));
 
-        console.log(" User deleted:", req.params.username);
+        console.log("✅ User deleted:", req.params.username);
         res.status(204).send();
     } catch (error) {
-        console.error(" Error deleting user:", error);
+        console.error("❌ Error deleting user:", error);
         res.status(500).json({ error: "Failed to delete user" });
     }
 });
