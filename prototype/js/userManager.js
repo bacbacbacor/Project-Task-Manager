@@ -24,6 +24,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (user.role !== "Admin") { 
                     let row = `
                         <tr>
+                            <td>${user.id}</td>
                             <td>${user.firstName} ${user.lastName}</td>
                             <td>${user.role}</td>
                             <td>${user.office || "N/A"}</td>

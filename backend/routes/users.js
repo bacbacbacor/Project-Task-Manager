@@ -26,12 +26,8 @@ router.get("/", (req, res) => {
 
 router.post("/", (req, res) => {
     const users = loadUsers();
-    
-    
     const newId = users.length > 0 ? users[users.length - 1].id + 1 : 1;
-
-   
-    const newUsername = `user${newId}`;
+    let newUsername = `user${newId}`;
     const newUser = {
         id: newId,
         username: newUsername,

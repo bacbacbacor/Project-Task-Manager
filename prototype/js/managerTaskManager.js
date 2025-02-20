@@ -43,13 +43,12 @@ document.addEventListener("DOMContentLoaded", function () {
                     </tr>
                 `).join("");
         } catch (error) {
-            console.error("❌ Error loading tasks:", error);
+            console.error("Error loading tasks:", error);
         }
     }
 
     async function assignTask() {
-        console.log("📌 Assign Task function triggered.");
-
+        console.log("Assign Task function triggered.");
         const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
         if (!loggedInUser || loggedInUser.role !== "Manager") {
             alert("Only Managers can assign tasks.");
@@ -57,20 +56,20 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         // Ensure the task title input field is found and its value is captured correctly
-        const taskTitleInput = document.getElementById("taskTitle");
+        let taskTitleInput = document.querySelector("#assignTaskModal #taskTitle"); // More specific selector
         if (!taskTitleInput) {
-            console.error("❌ ERROR: Task title input field not found in the DOM.");
+            console.error("❌ ERROR: Task title input field not found.");
             alert("Task title input field is missing.");
             return;
         }
 
         const taskTitle = taskTitleInput.value.trim();
-        console.log("📌 Task Title Retrieved:", taskTitle);
-
         if (!taskTitle) {
             alert("Task title is required.");
             return;
         }
+
+
 
         const assignedToUsername = document.getElementById("assignedTo").value.trim();
         if (!assignedToUsername) {
@@ -78,10 +77,10 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        const taskDescription = document.getElementById("taskDescription").value.trim();
-        const startDate = document.getElementById("startDate").value;
-        const endDate = document.getElementById("endDate").value;
-        const taskStatus = document.getElementById("taskStatus").value || "Pending";
+        const taskDescription = document.querySelector("#assignTaskModal #taskDescription").value.trim();
+        const startDate = document.querySelector("#assignTaskModal #startDate").value;
+        const endDate = document.querySelector("#assignTaskModal #endDate").value;
+        const taskStatus = document.querySelector("#assignTaskModal #taskStatus").value || "Pending";
 
         const newTask = {
             title: taskTitle,
@@ -107,7 +106,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (!response.ok) {
                 const errorMessage = await response.text();
                 throw new Error(`Failed to assign task: ${errorMessage}`);
-            }
+            }   
 
             alert("✅ Task assigned successfully!");
             loadTasks();
@@ -121,21 +120,21 @@ document.addEventListener("DOMContentLoaded", function () {
     window.editTask = async function (taskId) {
         try {
             console.log(`🛠 Fetching task ${taskId} for editing...`);
-    
+
             const response = await fetch(`http://localhost:3000/tasks/${taskId}`);
             if (!response.ok) throw new Error("Failed to fetch task details.");
             const task = await response.json();
-    
+
             console.log("✅ Task data:", task);
-    
+
             document.getElementById("editTaskId").value = task.id;
             document.getElementById("editTaskTitle").value = task.title;
             document.getElementById("editTaskDescription").value = task.description;
             document.getElementById("editStartDate").value = task.startDate;
             document.getElementById("editEndDate").value = task.endDate;
             document.getElementById("editTaskStatus").value = task.status;
-    
-            document.getElementById("editTaskModal").style.display = "block"; 
+
+            document.getElementById("editTaskModal").style.display = "block";
         } catch (error) {
             console.error("❌ Error fetching task details:", error);
         }
@@ -144,34 +143,34 @@ document.addEventListener("DOMContentLoaded", function () {
     window.updateTask = async function () {
         const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
         const taskId = document.getElementById("editTaskId").value;
-    
+
         const updatedTask = {
-            username: loggedInUser.username, 
+            username: loggedInUser.username,
             title: document.getElementById("editTaskTitle").value.trim(),
             description: document.getElementById("editTaskDescription").value.trim(),
             startDate: document.getElementById("editStartDate").value,
             endDate: document.getElementById("editEndDate").value,
             status: document.getElementById("editTaskStatus").value
         };
-    
+
         try {
             const response = await fetch(`http://localhost:3000/tasks/${taskId}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(updatedTask)
             });
-    
+
             if (!response.ok) throw new Error("Failed to update task.");
             const data = await response.json();
             console.log("Task updated:", data);
-    
+
             loadTasks();
             closeEditTaskModal();
         } catch (error) {
             console.error("❌ Error updating task:", error);
         }
     };
-    
+
     window.closeEditTaskModal = function () {
         document.getElementById("editTaskModal").style.display = "none";
     };

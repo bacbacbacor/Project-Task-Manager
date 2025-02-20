@@ -1,32 +1,23 @@
 [
   {
     "id": 1,
-    "title": "qqqqq",
-    "description": "qqqqq",
-    "startDate": "1111-11-11",
-    "endDate": "1111-02-22",
+    "title": "My Task IT Manager",
+    "description": "123123",
+    "startDate": "2025-02-18",
+    "endDate": "2025-02-23",
     "status": "In Progress",
-    "assignedTo": "user3",
-    "createdBy": "John"
+    "assignedTo": "user2",
+    "createdBy": "user2",
+    "username": "user2"
   },
   {
     "id": 2,
-    "title": "wwwwww",
-    "description": "wwwwwwwwwwwwwwwwwwwwww",
-    "startDate": "1232-12-31",
-    "endDate": "1232-12-31",
-    "status": "Completed",
+    "title": "For HR Employee",
+    "description": "test",
+    "startDate": "2025-02-20",
+    "endDate": "2025-03-08",
+    "status": "Pending",
     "assignedTo": "user3",
-    "createdBy": "user3"
-  },
-  {
-    "id": 3,
-    "title": "rrrr",
-    "description": "eeeeeeeeeeee",
-    "startDate": "1232-12-31",
-    "endDate": "1232-12-31",
-    "status": "Completed",
-    "assignedTo": "user2",
-    "createdBy": "user2"
+    "createdBy": "John"
   }
 ]

@@ -13,13 +13,18 @@ async function updatePassword() {
         return;
     }
 
-    
     const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
     if (!loggedInUser) {
         errorMessage.textContent = "Session expired. Please log in again.";
         setTimeout(() => window.location.href = "index.html", 2000);
         return;
     }
+
+    // 🔹 **Prevent multiple submissions**
+    if (localStorage.getItem("passwordChangeInProgress")) {
+        return;
+    }
+    localStorage.setItem("passwordChangeInProgress", "true");
 
     try {
         const response = await fetch("http://localhost:3000/users/update-password", {
@@ -34,11 +39,14 @@ async function updatePassword() {
         const data = await response.json();
         alert(data.message);
 
-        
-        localStorage.removeItem("loggedInUser"); 
-        setTimeout(() => window.location.href = "index.html", 1500); 
+        // 🔹 **Ensure session is fully cleared before redirect**
+        localStorage.removeItem("loggedInUser");
+        localStorage.removeItem("passwordChangeInProgress");
+
+        setTimeout(() => window.location.href = "index.html", 1500);
     } catch (error) {
         errorMessage.textContent = "Error updating password.";
         console.error("Password update error:", error);
     }
 }
+

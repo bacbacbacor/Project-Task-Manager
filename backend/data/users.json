@@ -19,13 +19,25 @@
     "office": "IT Department",
     "firstName": "Keanu",
     "lastName": "Monterde",
-    "number": "123",
+    "number": "312",
     "address": "123",
-    "birthday": "1111-11-11"
+    "birthday": "3212-11-22"
   },
   {
     "id": 3,
     "username": "user3",
+    "password": "123",
+    "role": "Employee",
+    "office": "HR Department",
+    "firstName": "Mark",
+    "lastName": "Rio",
+    "number": "123",
+    "address": "123",
+    "birthday": "2321-12-31"
+  },
+  {
+    "id": 4,
+    "username": "user4",
     "password": "123",
     "role": "Employee",
     "office": "IT Department",
@@ -33,6 +45,30 @@
     "lastName": "Lozada",
     "number": "123",
     "address": "123",
-    "birthday": "1231-02-22"
+    "birthday": "2004-02-11"
+  },
+  {
+    "id": 5,
+    "username": "user5",
+    "password": "123",
+    "role": "Manager",
+    "office": "Finance",
+    "firstName": "Ber",
+    "lastName": "Abarquez",
+    "number": "123",
+    "address": "123",
+    "birthday": "2001-12-20"
+  },
+  {
+    "id": 6,
+    "username": "user6",
+    "password": "123",
+    "role": "Employee",
+    "office": "Finance",
+    "firstName": "Vince",
+    "lastName": "Enad",
+    "number": "123",
+    "address": "123",
+    "birthday": "2001-11-22"
   }
 ]
