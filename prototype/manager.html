@@ -90,85 +90,95 @@
                 <option value="Completed">Completed</option>
             </select>
 
-            <label for="assignedTo">Assign to (Enter Username):</label>
-            <input type="text" id="assignedTo" placeholder="Enter employee username" required>
-            
-
+            <label for="assignedTo">Assign to:</label>
+            <select id="assignedTo" required></select>
             <button id="assignTaskButton" onclick="assignTask()">Assign Task</button>
             <button onclick="closeAssignTaskModal()">Cancel</button>
-        </div>
+
+          
+
+        </div>  
     </div>
     <!-- Edit Task Modal -->
-<div id="editTaskModal" class="modal">
-    <div class="modal-content">
-        <h2>Edit Task</h2>
-        <label for="editTaskTitle">Title:</label>
-        <input type="text" id="editTaskTitle" required>
+    <div id="editTaskModal" class="modal">
+        <div class="modal-content">
+            <h2>Edit Task</h2>
+            <label for="editTaskTitle">Title:</label>
+            <input type="text" id="editTaskTitle" required>
 
-        <label for="editTaskDescription">Description:</label>
-        <textarea id="editTaskDescription"></textarea>
+            <label for="editTaskDescription">Description:</label>
+            <textarea id="editTaskDescription"></textarea>
 
-        <label for="editStartDate">Start Date:</label>
-        <input type="date" id="editStartDate">
+            <label for="editStartDate">Start Date:</label>
+            <input type="date" id="editStartDate">
 
-        <label for="editEndDate">End Date:</label>
-        <input type="date" id="editEndDate">
+            <label for="editEndDate">End Date:</label>
+            <input type="date" id="editEndDate">
 
-        <label for="editTaskStatus">Status:</label>
-        <select id="editTaskStatus">
-            <option value="Pending">Pending</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Completed">Completed</option>
-        </select>
+            <label for="editTaskStatus">Status:</label>
+            <select id="editTaskStatus">
+                <option value="Pending">Pending</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Completed">Completed</option>
+            </select>
 
-        <input type="hidden" id="editTaskId">
-        
-        <button onclick="updateTask()">Save Changes</button>
-        <button onclick="closeEditTaskModal()">Cancel</button>
+            <input type="hidden" id="editTaskId">
+
+            <button onclick="updateTask()">Save Changes</button>
+            <button onclick="closeEditTaskModal()">Cancel</button>
+        </div>
     </div>
-</div>
 
     <!-- Generate Report Button -->
-<button onclick="openReportModal()">Generate Task Report</button>
+    <button onclick="openReportModal()">Generate Task Report</button>
 
-<!-- Report Modal -->
-<div id="reportModal" class="modal">
-    <div class="modal-content">
-        <h2>Task Report</h2>
+    <!-- Report Modal -->
+    <div id="reportModal" class="modal">
+        <div class="modal-content">
+            <h2>Task Report</h2>
 
-        <label for="startDate">Start Date:</label>
-        <input type="date" id="startDate">
-        
-        <label for="endDate">End Date:</label>
-        <input type="date" id="endDate">
+            <label for="startDate">Start Date:</label>
+            <input type="date" id="startDate">
 
-        <!-- Show user selection only for Admins -->
-        <div id="adminUserSelection">
-            <label for="selectUser">Select User:</label>
-            <select id="selectUser">
-                <option value="">Select a User</option>
-            </select>
+            <label for="endDate">End Date:</label>
+            <input type="date" id="endDate">
+
+            <!-- Show user selection only for Admins -->
+            <div id="adminUserSelection">
+                <label for="selectUser">Select User:</label>
+                <select id="selectUser">
+                    <option value="">Select a User</option>
+                </select>
+            </div>
+
+            <button onclick="previewReport()">Preview Report</button>
+            <button id="downloadReport" onclick="generatePDF()" style="display: none;">Download PDF</button>
+            <button id="closeReportModal">Close</button>
+
+            <div id="previewReport"></div>
         </div>
-
-        <button onclick="previewReport()">Preview Report</button>
-        <button id="downloadReport" onclick="generatePDF()" style="display: none;">Download PDF</button>
-        <button id="closeReportModal">Close</button>
-
-        <div id="previewReport"></div>
     </div>
-</div>
 
-<style>
-    /* Modal Styling */
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
-    .modal-content { background: white; padding: 20px; margin: 10% auto; width: 50%; }
-</style>
+    <style>
+        /* Modal Styling */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+        }
 
-
-
-
+        .modal-content {
+            background: white;
+            padding: 20px;
+            margin: 10% auto;
+            width: 50%;
+        }
+    </style>
     <script src="js/managerTaskManager.js"></script>
-
     <script src="js/logout.js"></script>
     <script src="js/taskManager.js"></script>
 </body>

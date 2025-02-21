@@ -108,5 +108,46 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     };
 
+
+    // Fetch users for Admin (All managers & employees)
+async function loadUsersForAdmin() {
+    try {
+        const response = await fetch("http://localhost:3000/users");
+        if (!response.ok) throw new Error("Failed to fetch users.");
+
+        const users = await response.json();
+        const assignedToSelect = document.getElementById("assignedTo");
+        assignedToSelect.innerHTML = '<option value="">Select User</option>';
+
+        users.forEach(user => {
+            if (user.role !== "Admin") { // Exclude Admins
+                let option = document.createElement("option");
+                option.value = user.username;
+                option.textContent = `${user.firstName} (${user.role})`;
+                assignedToSelect.appendChild(option);
+            }
+        });
+    } catch (error) {
+        console.error("Error loading users:", error);
+    }
+}
+
+// Call function on modal open
+window.openAssignTaskModal = function () {
+    document.getElementById("assignTaskModal").style.display = "block";
+    loadUsersForAdmin();
+};
+
+
     loadAllTasks();
 });
+
+
+// make sure to implement My Sql here
+//dapat ma replace na ang json file to mysql
+//make sure to fix the passowrd issue
+//make sure test out each functions as a user admin
+// make sure to test out each function or features as a manager
+//make sure to test out each function or features as a employee
+//make sure to make assign user to a dropdown of the users that will be assigned
+//coordinate with frontend 

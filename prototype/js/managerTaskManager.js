@@ -174,6 +174,37 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("editTaskModal").style.display = "none";
     };
 
+    // Fetch employees for Manager (Only from the same office)
+async function loadUsersForManager() {
+    try {
+        const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
+        const response = await fetch("http://localhost:3000/users");
+        if (!response.ok) throw new Error("Failed to fetch users.");
+
+        const users = await response.json();
+        const assignedToSelect = document.getElementById("assignedTo");
+        assignedToSelect.innerHTML = '<option value="">Select Employee</option>';
+
+        users.forEach(user => {
+            if (user.role === "Employee" && user.office === loggedInUser.office) {
+                let option = document.createElement("option");
+                option.value = user.username;
+                option.textContent = `${user.firstName}`;
+                assignedToSelect.appendChild(option);
+            }
+        });
+    } catch (error) {
+        console.error("Error loading employees:", error);
+    }
+}
+
+// Call function when modal opens
+window.openAssignTaskModal = function () {
+    document.getElementById("assignTaskModal").style.display = "block";
+    loadUsersForManager();
+};
+
+
 
 
     loadTasks();
