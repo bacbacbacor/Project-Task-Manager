@@ -70,5 +70,17 @@
     "number": "123",
     "address": "123",
     "birthday": "2001-11-22"
+  },
+  {
+    "id": 7,
+    "username": "user7",
+    "password": "default123",
+    "role": "Employee",
+    "office": "IT Department",
+    "firstName": "Van",
+    "lastName": "Cuadra",
+    "number": "123",
+    "address": "12313",
+    "birthday": "1997-01-14"
   }
 ]

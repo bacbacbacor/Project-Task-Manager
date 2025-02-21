@@ -16,7 +16,15 @@ async function login() {
             return;
         }
 
-        localStorage.setItem("loggedInUser", JSON.stringify(data));
+        localStorage.setItem("loggedInUser", JSON.stringify({
+            username: data.username,
+            role: data.role,
+            firstName: data.firstName,
+            lastName: data.lastName,
+            office: data.office || "Unknown" , // ✅ Ensure office is stored
+            firstTimeLogin: data.firstTimeLogin
+        }));
+        
 
         if (data.firstTimeLogin) {
             

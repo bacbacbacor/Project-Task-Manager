@@ -105,7 +105,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (!response.ok) {
                 const errorMessage = await response.text();
                 throw new Error(`Failed to assign task: ${errorMessage}`);
-            }   
+            }
 
             alert("Task assigned successfully!");
             loadTasks();
@@ -174,35 +174,72 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("editTaskModal").style.display = "none";
     };
 
+
     // Fetch employees for Manager (Only from the same office)
-async function loadUsersForManager() {
-    try {
-        const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
-        const response = await fetch("http://localhost:3000/users");
-        if (!response.ok) throw new Error("Failed to fetch users.");
-
-        const users = await response.json();
-        const assignedToSelect = document.getElementById("assignedTo");
-        assignedToSelect.innerHTML = '<option value="">Select Employee</option>';
-
-        users.forEach(user => {
-            if (user.role === "Employee" && user.office === loggedInUser.office) {
-                let option = document.createElement("option");
-                option.value = user.username;
-                option.textContent = `${user.firstName}`;
-                assignedToSelect.appendChild(option);
+    async function loadUsersForManager() {
+        try {
+            const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
+            console.log("🔍 Logged-in Manager:", loggedInUser);
+    
+            if (!loggedInUser || loggedInUser.role !== "Manager") {
+                console.error("❌ Manager not found or incorrect role.");
+                return;
             }
-        });
-    } catch (error) {
-        console.error("Error loading employees:", error);
+    
+            console.log(`🔍 Manager Office: ${loggedInUser.office}`);
+    
+            const response = await fetch("http://localhost:3000/users");
+            if (!response.ok) throw new Error("❌ Failed to fetch users.");
+    
+            const users = await response.json();
+            console.log("✅ Users from API:", users);
+    
+            const assignedToSelect = document.getElementById("assignedTo");
+            assignedToSelect.innerHTML = '<option value="">Select Employee</option>';
+    
+            let employeesFound = false;
+    
+            users.forEach(user => {
+                console.log(`🔍 Checking user: ${user.firstName}, Office: ${user.office}, Role: ${user.role}`);
+                if (user.role === "Employee" && user.office === loggedInUser.office) {
+                    let option = document.createElement("option");
+                    option.value = user.username;
+                    option.textContent = `${user.firstName} (${user.office})`;
+                    assignedToSelect.appendChild(option);
+                    employeesFound = true;
+                }
+            });
+    
+            if (!employeesFound) {
+                console.warn("⚠ No employees found in the same office.");
+            } else {
+                console.log("✅ Employees added to dropdown.");
+            }
+        } catch (error) {
+            console.error("❌ Error loading employees:", error);
+        }
     }
-}
+    
 
-// Call function when modal opens
-window.openAssignTaskModal = function () {
-    document.getElementById("assignTaskModal").style.display = "block";
-    loadUsersForManager();
-};
+    // Call function when modal opens
+    window.openAssignTaskModal = function () {
+        document.getElementById("assignTaskModal").style.display = "block";
+        loadUsersForManager();
+    };
+
+
+    // Call function when modal opens
+    window.openAssignTaskModal = function () {
+        document.getElementById("assignTaskModal").style.display = "block";
+        loadUsersForManager();
+    };
+
+
+    // Call function when modal opens
+    window.openAssignTaskModal = function () {
+        document.getElementById("assignTaskModal").style.display = "block";
+        loadUsersForManager();
+    };
 
 
 

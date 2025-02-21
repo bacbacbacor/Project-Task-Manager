@@ -30,6 +30,7 @@ router.post("/login", (req, res) => {
         role: user.role,
         firstName: user.firstName,
         lastName: user.lastName,
+        office: user.office,  
         firstTimeLogin: firstTimeLogin 
     });
 });
