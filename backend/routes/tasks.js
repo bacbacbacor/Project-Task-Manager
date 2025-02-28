@@ -130,4 +130,19 @@ router.delete("/:id", async (req, res) => {
     }
 });
 
+// GET: Fetch a single task by ID
+router.get("/:id", async (req, res) => {
+    const { id } = req.params;
+    try {
+        const [rows] = await pool.query("SELECT * FROM tasks WHERE id = ?", [id]);
+        if (rows.length === 0) {
+            return res.status(404).json({ message: "Task not found." });
+        }
+        res.json(rows[0]);
+    } catch (error) {
+        console.error("Error fetching task by ID:", error);
+        res.status(500).json({ message: "Server error while fetching task." });
+    }
+});
+
 module.exports = router;
