@@ -2,7 +2,7 @@
   {
     "id": 1,
     "username": "admin",
-    "password": "123",
+    "password": "default123",
     "role": "Admin",
     "office": "IT Department",
     "firstName": "John",

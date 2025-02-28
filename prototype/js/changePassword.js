@@ -20,11 +20,6 @@ async function updatePassword() {
         return;
     }
 
-    if (localStorage.getItem("passwordChangeInProgress")) {
-        return;
-    }
-    localStorage.setItem("passwordChangeInProgress", "true");
-
     try {
         const response = await fetch("http://localhost:3000/users/update-password", {
             method: "POST",
@@ -36,15 +31,19 @@ async function updatePassword() {
         });
 
         const data = await response.json();
-        alert(data.message);
+        
+        if (response.ok) {
+            alert("Password updated successfully! Redirecting to login...");
+            
+            // ✅ Clear session and redirect to login
+            localStorage.removeItem("loggedInUser");
+            setTimeout(() => window.location.href = "index.html", 1500);
+        } else {
+            errorMessage.textContent = data.message;
+        }
 
-        localStorage.removeItem("loggedInUser");
-        localStorage.removeItem("passwordChangeInProgress");
-
-        setTimeout(() => window.location.href = "index.html", 1500);
     } catch (error) {
         errorMessage.textContent = "Error updating password.";
         console.error("Password update error:", error);
     }
 }
-

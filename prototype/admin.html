@@ -17,7 +17,6 @@
     <main>
         <h2>Welcome, <span id="adminName"></span>!</h2>
 
-
         <section class="dashboard-cards">
             <div class="card">
                 <h3>Total Users</h3>
@@ -32,6 +31,7 @@
                 <p id="totalEmployees">0</p>
             </div>
         </section>
+
         <section class="user-management">
             <h3>User Management</h3>
             <button class="add-user-btn" onclick="openUserModal()">➕ Add User</button>
@@ -51,6 +51,7 @@
         </section>
     </main>
 
+    <!-- User Modal -->
     <div id="userModal" class="modal">
         <div class="modal-content">
             <h2>Add New User</h2>
@@ -86,39 +87,39 @@
         </div>
     </div>
 
-    <div id="editUserModal" class="modal">
+    <!-- Edit Task Modal -->
+    <div id="editTaskModal" class="modal" style="display: none;">
         <div class="modal-content">
-            <h2>Edit User</h2>
-            <input type="hidden" id="editUserId"> <!-- Store user ID -->
+            <h2>Edit Task</h2>
+            <span class="close" onclick="closeEditTaskModal()">&times;</span>
 
-            <label for="editFirstName">First Name:</label>
-            <input type="text" id="editFirstName">
+            <label for="editTaskTitle">Title:</label>
+            <input type="text" id="editTaskTitle" required>
 
-            <label for="editLastName">Last Name:</label>
-            <input type="text" id="editLastName">
+            <label for="editTaskDescription">Description:</label>
+            <textarea id="editTaskDescription" required></textarea>
 
-            <label for="editRole">Role:</label>
-            <select id="editRole">
-                <option value="Manager">Manager</option>
-                <option value="Employee">Employee</option>
+            <label for="editStartDate">Start Date:</label>
+            <input type="date" id="editStartDate" required>
+
+            <label for="editEndDate">End Date:</label>
+            <input type="date" id="editEndDate" required>
+
+            <label for="editTaskStatus">Status:</label>
+            <select id="editTaskStatus">
+                <option value="Pending">Pending</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Completed">Completed</option>
             </select>
 
-            <label for="editOffice">Office:</label>
-            <select id="editOffice"></select>
+            <label for="editTaskAssignedTo">Assign to:</label>
+            <select id="editTaskAssignedTo" required></select>
 
-            <label for="editNumber">Phone Number:</label>
-            <input type="text" id="editNumber">
-
-            <label for="editAddress">Address:</label>
-            <input type="text" id="editAddress">
-
-            <label for="editBirthday">Birthday:</label>
-            <input type="date" id="editBirthday">
-
-            <button class="save-user-btn" onclick="updateUser()">Save Changes</button>
-            <button class="cancel-btn" onclick="closeEditUserModal()">Cancel</button>
+            <button id="updateTaskBtn">💾 Save Changes</button>
+            <button onclick="closeEditTaskModal()">Cancel</button>
         </div>
     </div>
+
 
     <h2>All Tasks (Admin View)</h2>
 
@@ -133,19 +134,20 @@
                 <th>End Date</th>
                 <th>Status</th>
                 <th>Assigned To</th>
-                <th>Assigned By</th>
+                <th>Created By</th>
                 <th>Actions</th>
             </tr>
         </thead>
-        <tbody></tbody>
+        <tbody id="taskTableBody"></tbody>
     </table>
 
-
+    <!-- Assign Task Button -->
     <button onclick="openAssignTaskModal()">➕ Assign Task</button>
+
     <!-- Assign Task Modal -->
     <div id="assignTaskModal" class="modal">
         <div class="modal-content">
-            <h2>Assign a Task to an Employee</h2>
+            <h2>Assign a Task</h2>
             <span class="close" onclick="closeAssignTaskModal()">&times;</span>
             <label for="taskTitle">Title:</label>
             <input type="text" id="taskTitle" required>
@@ -161,21 +163,45 @@
                 <option value="In Progress">In Progress</option>
                 <option value="Completed">Completed</option>
             </select>
-            <label for="assignedTo">Assign to:</label>
-            <select id="assignedTo" required></select>
-            <button onclick="assignTask()">Assign Task</button>
+            <label for="assignTaskAssignedTo">Assign to:</label>
+            <select id="assignTaskAssignedTo" required></select>
+            <button id="assignTaskBtn" onclick="assignTask()">Assign Task</button>
             <button onclick="closeAssignTaskModal()">Cancel</button>
         </div>
     </div>
 
+    <!-- Edit User Modal -->
+    <div id="editUserModal" class="modal">
+        <div class="modal-content">
+            <h2>Edit User</h2>
+            <input type="hidden" id="editUserId">
+            <label for="editFirstName">First Name:</label>
+            <input type="text" id="editFirstName">
+            <label for="editLastName">Last Name:</label>
+            <input type="text" id="editLastName">
+            <label for="editRole">Role:</label>
+            <select id="editRole">
+                <option value="Manager">Manager</option>
+                <option value="Employee">Employee</option>
+            </select>
+            <label for="editOffice">Office:</label>
+            <select id="editOffice"></select>
+            <label for="editNumber">Phone Number:</label>
+            <input type="text" id="editNumber">
+            <label for="editAddress">Address:</label>
+            <input type="text" id="editAddress">
+            <label for="editBirthday">Birthday:</label>
+            <input type="date" id="editBirthday">
+            <button onclick="updateUser()">💾 Save Changes</button>
+            <button onclick="closeEditUserModal()">Cancel</button>
+        </div>
+    </div>
 
-
-
-    <script src="js/adminTaskManager.js"></script>
-
+    <!-- Scripts -->
     <script src="js/adminTaskManager.js"></script>
     <script src="js/logout.js"></script>
     <script src="js/userManager.js"></script>
+
 </body>
 
 </html>

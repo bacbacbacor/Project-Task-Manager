@@ -1,119 +1,141 @@
 const express = require("express");
-const fs = require("fs");
-const path = require("path");
+const bcrypt = require("bcryptjs");
+const pool = require("../db"); // ✅ Import MySQL connection
 
 const router = express.Router();
-const usersFilePath = path.join(__dirname, "../data/users.json");
 
-
-const loadUsers = () => {
-    if (!fs.existsSync(usersFilePath)) {
-        fs.writeFileSync(usersFilePath, JSON.stringify([])); // Create empty file if missing
+// **GET: Fetch all users from MySQL**
+router.get("/", async (req, res) => {
+    try {
+        const [users] = await pool.query("SELECT id, username, role, office, firstName, lastName FROM users");
+        res.json(users);
+    } catch (error) {
+        console.error("Error fetching users from MySQL:", error);
+        res.status(500).json({ message: "Server error while fetching users." });
     }
-    return JSON.parse(fs.readFileSync(usersFilePath));
-};
-
-
-const saveUsers = (users) => {
-    fs.writeFileSync(usersFilePath, JSON.stringify(users, null, 2));
-};
-
-
-router.get("/", (req, res) => {
-    res.json(loadUsers());
 });
 
+// **POST: Create a new user (Ensuring Correct Username Format)**
+router.post("/", async (req, res) => {
+    const { role, office, firstName, lastName, number, address, birthday } = req.body;
 
-router.post("/", (req, res) => {
-    const users = loadUsers();
-    const newId = users.length > 0 ? users[users.length - 1].id + 1 : 1;
-    let newUsername = `user${newId}`;
-    const newUser = {
-        id: newId,
-        username: newUsername,
-        password: "default123", 
-        role: req.body.role,
-        office: req.body.office,
-        firstName: req.body.firstName,
-        lastName: req.body.lastName,
-        number: req.body.number,
-        address: req.body.address,
-        birthday: req.body.birthday
-    };
+    if (!role || !firstName || !lastName) {
+        return res.status(400).json({ message: "Missing required fields." });
+    }
 
-    users.push(newUser);
-    saveUsers(users);
-    
-    res.json(newUser);
+    try {
+        const defaultPassword = await bcrypt.hash("default123", 10); // ✅ Hash default password
+
+        // ✅ Insert user with username set as 'user' + AUTO_INCREMENT ID
+        const [result] = await pool.query(
+            "INSERT INTO users (username, password, role, office, firstName, lastName, number, address, birthday) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            [`PENDING`, defaultPassword, role, office, firstName, lastName, number, address, birthday]
+        );
+
+        const userId = result.insertId; // Get the new user ID
+        const username = `user${userId}`;
+
+        // ✅ Immediately set the correct username in the database
+        await pool.query("UPDATE users SET username = ? WHERE id = ?", [username, userId]);
+
+        res.json({ message: "User created successfully.", userId, username });
+    } catch (error) {
+        console.error("Error creating user:", error);
+        res.status(500).json({ message: "Server error while creating user." });
+    }
 });
 
-
-router.delete("/:id", (req, res) => {
-    let users = loadUsers();
-    const userId = parseInt(req.params.id);
-    users = users.filter(user => user.id !== userId);
-    saveUsers(users);
-    res.json({ message: "User deleted successfully" });
-});
-
-router.post("/update-password", (req, res) => {
+// **POST: Update Password**
+router.post("/update-password", async (req, res) => {
     const { username, newPassword } = req.body;
-    let users = loadUsers();
 
-    let user = users.find(u => u.username === username);
-    if (!user) {
-        return res.status(404).json({ message: "User not found" });
+    if (!username || !newPassword) {
+        return res.status(400).json({ message: "Username and new password are required." });
     }
 
-    user.password = newPassword; 
-    saveUsers(users);
+    try {
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    res.json({ message: "Password updated successfully" });
+        const [result] = await pool.query(
+            "UPDATE users SET password = ? WHERE username = ?",
+            [hashedPassword, username]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "User not found." });
+        }
+
+        res.json({ message: "Password updated successfully." });
+    } catch (error) {
+        console.error("Error updating password:", error);
+        res.status(500).json({ message: "Server error while updating password." });
+    }
 });
 
-router.put("/:id", (req, res) => {
-    let users = loadUsers();
-    const userId = parseInt(req.params.id);
-    let userIndex = users.findIndex(u => u.id === userId);
+// **PUT: Update user details**
+router.put("/:id", async (req, res) => {
+    const { id } = req.params;
+    const { firstName, lastName, role, office, number, address, birthday } = req.body;
 
-    if (userIndex === -1) {
-        return res.status(404).json({ message: "User not found" });
+    if (!firstName || !lastName || !role || !office) {
+        return res.status(400).json({ message: "Missing required fields." });
     }
 
-  
-    users[userIndex] = { ...users[userIndex], ...req.body };
+    try {
+        const [result] = await pool.query(
+            "UPDATE users SET firstName = ?, lastName = ?, role = ?, office = ?, number = ?, address = ?, birthday = ? WHERE id = ?",
+            [firstName, lastName, role, office, number || null, address || null, birthday || null, id]
+        );
 
-    saveUsers(users);
-    res.json({ message: "User updated successfully", user: users[userIndex] });
-});
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "User not found or no changes detected." });
+        }
 
-router.put("/:id", (req, res) => {
-    let users = loadUsers();
-    const userId = parseInt(req.params.id);
-    let userIndex = users.findIndex(u => u.id === userId);
-
-    if (userIndex === -1) {
-        return res.status(404).json({ message: "User not found" });
+        res.json({ message: "✅ User updated successfully!" });
+    } catch (error) {
+        console.error("❌ Error updating user:", error);
+        res.status(500).json({ message: "Server error while updating user." });
     }
-
-   
-    users[userIndex] = { ...users[userIndex], ...req.body };
-
-    saveUsers(users);
-    res.json({ message: "User updated successfully", user: users[userIndex] });
 });
 
-router.get("/:id", (req, res) => {
-    const users = loadUsers();
-    const userId = parseInt(req.params.id);
-    const user = users.find(u => u.id === userId);
 
-    if (!user) {
-        return res.status(404).json({ message: "User not found" });
+
+
+// **DELETE: Remove user**
+router.delete("/:id", async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const [result] = await pool.query("DELETE FROM users WHERE id = ?", [id]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "User not found." });
+        }
+
+        res.json({ message: "User deleted successfully." });
+    } catch (error) {
+        console.error("Error deleting user:", error);
+        res.status(500).json({ message: "Server error while deleting user." });
     }
-
-    res.json(user);
 });
+
+router.get("/:id", async (req, res) => {
+    const { id } = req.params;
+    try {
+        const [users] = await pool.query(
+            "SELECT id, username, role, office, firstName, lastName, number, address, birthday FROM users WHERE id = ?",
+            [id]
+        );
+        if (users.length === 0) {
+            return res.status(404).json({ message: "User not found." });
+        }
+        res.json(users[0]);
+    } catch (error) {
+        console.error("Error fetching user:", error);
+        res.status(500).json({ message: "Server error while fetching user." });
+    }
+});
+
+
 
 module.exports = router;
-

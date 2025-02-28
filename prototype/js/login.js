@@ -16,23 +16,30 @@ async function login() {
             return;
         }
 
+        // ✅ Ensure `id` is included in the user data before saving it
+        if (!data.id) {
+            console.error("❌ User ID is missing from the login response. Check backend.");
+            errorMessage.textContent = "Login failed: Missing user ID.";
+            return;
+        }
+
         localStorage.setItem("loggedInUser", JSON.stringify({
+            id: data.id, // ✅ Store ID properly
             username: data.username,
             role: data.role,
             firstName: data.firstName,
             lastName: data.lastName,
-            office: data.office || "Unknown" , // ✅ Ensure office is stored
+            office: data.office || "Unknown", // ✅ Ensure office is stored
             firstTimeLogin: data.firstTimeLogin
         }));
-        
+
+        console.log("✅ Logged-in user saved:", localStorage.getItem("loggedInUser"));
 
         if (data.firstTimeLogin) {
-            
             window.location.href = "change-password.html";
             return;
         }
 
-        
         if (data.role === "Admin") {
             window.location.href = "admin.html";
         } else if (data.role === "Manager") {

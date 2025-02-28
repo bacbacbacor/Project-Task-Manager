@@ -1,175 +1,140 @@
 const express = require("express");
-const fs = require("fs");
-const path = require("path");
+const pool = require("../db"); // ✅ Import MySQL connection
+
 const router = express.Router();
 
-const tasksFilePath = path.join(__dirname, "../data/tasks.json");
-const usersFilePath = path.join(__dirname, "../data/users.json");
-
-const loadTasks = () => {
-    if (!fs.existsSync(tasksFilePath)) {
-        fs.writeFileSync(tasksFilePath, JSON.stringify([]));
-    }
-    return JSON.parse(fs.readFileSync(tasksFilePath));
-};
-
-const loadUsers = () => {
-    if (!fs.existsSync(usersFilePath)) {
-        fs.writeFileSync(usersFilePath, JSON.stringify([]));
-    }
-    return JSON.parse(fs.readFileSync(usersFilePath));
-};
-
-const saveTasks = (tasks) => {
-    fs.writeFileSync(tasksFilePath, JSON.stringify(tasks, null, 2));
-};
-
-router.get("/", (req, res) => {
+// **GET: Fetch all tasks from MySQL with First Names Instead of IDs**
+router.get("/", async (req, res) => {
     try {
-        const tasks = loadTasks();
-        const users = loadUsers();
-        const { username, role } = req.query;
-
-        if (!username || !role) {
-            return res.status(400).json({ message: "Username and role are required." });
-        }
-
-        let userTasks;
-        if (role === "Admin") {
-            userTasks = tasks;
-        } else if (role === "Manager") {
-            const manager = users.find(u => u.username === username);
-            if (!manager) {
-                return res.status(404).json({ message: "Manager not found." });
-            }
-            const managerOffice = manager.office;
-
-            const employees = users
-                .filter(u => u.role === "Employee" && u.office === managerOffice)
-                .map(u => u.username);
-
-            userTasks = tasks.filter(t =>
-                t.assignedTo === username || employees.includes(t.assignedTo)
-            );
-        } else {
-            userTasks = tasks.filter(t => t.assignedTo === username);
-        }
-
-        const getFirstName = (un) => {
-            const user = users.find(u => u.username === un);
-            return user ? user.firstName : un;
-        };
-
-        userTasks = userTasks.map(task => ({
-            ...task,
-            assignedTo: getFirstName(task.assignedTo),
-            createdBy: getFirstName(task.createdBy)
-        }));
-
-        res.json(userTasks);
+        const [tasks] = await pool.query(`
+            SELECT tasks.id, tasks.title, tasks.description, tasks.startDate, tasks.endDate, 
+                   tasks.status, u1.firstName AS assignedTo, u2.firstName AS createdBy
+            FROM tasks
+            LEFT JOIN users u1 ON tasks.assignedTo = u1.id
+            LEFT JOIN users u2 ON tasks.createdBy = u2.id
+        `);
+        res.json(tasks);
     } catch (error) {
-        console.error("GET tasks error:", error);
-        res.status(500).json({ message: "Error loading tasks." });
+        console.error("❌ Error fetching tasks from MySQL:", error);
+        res.status(500).json({ message: "Server error while fetching tasks." });
     }
 });
 
-router.get("/:id", (req, res) => {
+// **GET: Fetch a single task by ID with Names Instead of IDs**
+router.get("/:id", async (req, res) => {
     try {
-        const tasks = loadTasks();
-        const taskId = parseInt(req.params.id);
-        const task = tasks.find(t => t.id === taskId);
+        const { id } = req.params;
+        const [tasks] = await pool.query(
+            `SELECT tasks.*, u1.firstName AS assignedTo, u2.firstName AS createdBy 
+             FROM tasks
+             LEFT JOIN users u1 ON tasks.assignedTo = u1.id
+             LEFT JOIN users u2 ON tasks.createdBy = u2.id
+             WHERE tasks.id = ?`, 
+            [id]
+        );
 
-        if (!task) {
+        if (tasks.length === 0) {
             return res.status(404).json({ message: "Task not found." });
         }
 
-        res.json(task);
+        res.json(tasks[0]);
     } catch (error) {
-        console.error("GET task by ID error:", error);
-        res.status(500).json({ message: "Error loading task details." });
+        console.error("Error fetching task details:", error);
+        res.status(500).json({ message: "Server error while fetching task details." });
     }
 });
 
-// **POST: Create / Assign Task**
-router.post("/", (req, res) => {
-    const tasks = loadTasks();
-    const users = loadUsers();
-    const { title, description, startDate, endDate, status, assignedTo, createdBy, role } = req.body;
+// **POST: Create a new task (Managers can only assign to employees in the same office)**
+router.post("/", async (req, res) => {
+    const { title, description, startDate, endDate, status, assignedTo, createdBy } = req.body;
 
-    if (!title || !createdBy || !role) {
-        return res.status(400).json({ message: "Missing required fields (title, createdBy, role)." });
+    if (!title || !startDate || !endDate || !status || !assignedTo || !createdBy) {
+        return res.status(400).json({ message: "Missing required fields." });
     }
 
-    let assignedToFinal = assignedTo || createdBy;
+    try {
+        // ✅ Fetch manager's office
+        const [manager] = await pool.query("SELECT office, role FROM users WHERE id = ?", [createdBy]);
+        if (!manager.length) {
+            return res.status(404).json({ message: "Manager not found." });
+        }
 
-    if (role === "Employee") {
-        if (assignedToFinal !== createdBy) {
-            return res.status(403).json({ message: "Employees can only add tasks for themselves." });
+        const managerOffice = manager[0].office;
+        const managerRole = manager[0].role;
+
+        // ✅ Check if the assigned employee belongs to the same office
+        const [employee] = await pool.query("SELECT office FROM users WHERE id = ?", [assignedTo]);
+        if (!employee.length) {
+            return res.status(404).json({ message: "Assigned employee not found." });
         }
-    } else if (role === "Manager") {
-        const manager = users.find(u => u.username === createdBy);
-        if (!manager) {
-            return res.status(404).json({ message: "Manager not found in user list." });
+
+        if (managerRole === "Manager" && employee[0].office !== managerOffice) {
+            return res.status(403).json({ message: "Managers can only assign tasks to employees within their office." });
         }
-        if (assignedToFinal !== createdBy) {
-            const managerOffice = manager.office;
-            const targetUser = users.find(u => u.username === assignedToFinal);
-            if (!targetUser || targetUser.office !== managerOffice) {
-                return res.status(403).json({ message: "Manager can only assign tasks to employees in their office." });
-            }
-        }
-    } else if (role === "Admin") {
-    } else {
-        return res.status(403).json({ message: "Invalid role or permission." });
+
+        // ✅ Insert the task into MySQL
+        const [result] = await pool.query(
+            "INSERT INTO tasks (title, description, startDate, endDate, status, assignedTo, createdBy) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            [title, description, startDate, endDate, status || "Pending", assignedTo, createdBy]
+        );
+
+        res.status(201).json({ message: "Task assigned successfully!", taskId: result.insertId });
+    } catch (error) {
+        console.error("Error assigning task:", error);
+        res.status(500).json({ message: "Server error while assigning task." });
     }
-
-    const newTask = {
-        id: tasks.length > 0 ? tasks[tasks.length - 1].id + 1 : 1,
-        title,
-        description,
-        startDate,
-        endDate,
-        status: status || "Pending",
-        assignedTo: assignedToFinal,
-        createdBy
-    };
-
-    tasks.push(newTask);
-    saveTasks(tasks);
-
-    res.json({ message: "Task added successfully", task: newTask });
 });
 
-router.put("/:id", (req, res) => {
-    const tasks = loadTasks();
-    const { username, role } = req.body;
-    const taskId = parseInt(req.params.id);
+// **PUT: Update an existing task**
+router.put("/:id", async (req, res) => {
+    const { id } = req.params;
+    const { title, description, startDate, endDate, status, assignedTo } = req.body;
 
-    const taskIndex = tasks.findIndex(t => t.id === taskId);
-    if (taskIndex === -1) {
-        return res.status(404).json({ message: "Task not found." });
+    if (!title || !description || !startDate || !endDate || !status || !assignedTo) {
+        return res.status(400).json({ message: "Missing required fields in update request." });
     }
 
-    if (
-        tasks[taskIndex].assignedTo !== username &&
-        tasks[taskIndex].createdBy !== username &&
-        role !== "Admin"
-    ) {
-        return res.status(403).json({ message: "No permission to edit this task." });
+    try {
+        // ✅ Ensure the task exists before updating
+        const [taskExists] = await pool.query("SELECT * FROM tasks WHERE id = ?", [id]);
+        if (taskExists.length === 0) {
+            return res.status(404).json({ message: "Task not found." });
+        }
+
+        // ✅ Update the task in the database
+        const [result] = await pool.query(
+            "UPDATE tasks SET title = ?, description = ?, startDate = ?, endDate = ?, status = ?, assignedTo = ? WHERE id = ?",
+            [title, description, startDate, endDate, status, assignedTo, id]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(500).json({ message: "Failed to update task. No rows affected." });
+        }
+
+        res.json({ message: "Task updated successfully." });
+
+    } catch (error) {
+        console.error("❌ Error updating task:", error);
+        res.status(500).json({ message: "Server error while updating task." });
     }
+}); 
 
-    tasks[taskIndex] = { ...tasks[taskIndex], ...req.body };
-    saveTasks(tasks);
+// **DELETE: Remove a task**
+router.delete("/:id", async (req, res) => {
+    const { id } = req.params;
 
-    res.json({ message: "Task updated successfully", task: tasks[taskIndex] });
-});
+    try {
+        const [result] = await pool.query("DELETE FROM tasks WHERE id = ?", [id]);
 
-router.delete("/:id", (req, res) => {
-    let tasks = loadTasks();
-    const taskId = parseInt(req.params.id);
-    tasks = tasks.filter(t => t.id !== taskId);
-    saveTasks(tasks);
-    res.json({ message: "Task deleted successfully" });
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "Task not found." });
+        }
+
+        res.json({ message: "Task deleted successfully." });
+    } catch (error) {
+        console.error("Error deleting task:", error);
+        res.status(500).json({ message: "Server error while deleting task." });
+    }
 });
 
 module.exports = router;
