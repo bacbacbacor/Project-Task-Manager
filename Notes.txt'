@@ -1,3 +1,7 @@
-Bug: Edit exisitng user feature, save changes button doesnt save into database
+Bug:   employees and Managers cannot see the tasks that are assigned to them
 
-Next Goal: Check working features in Manager side and start with adding task as a manager
+Conditions:
+Managers and employees must see their own tasks
+employees cannot see the tasks of other employees and the tasks of the managers
+Managers has another table to see the tasks of the employees who have the same office as they do
+Managers Cannot see the tasks of other managers

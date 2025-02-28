@@ -120,6 +120,8 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("userModal").style.display = "block";
     };
 
+   
+
   
 
     window.showUserFields = function () {
@@ -154,10 +156,15 @@ document.addEventListener("DOMContentLoaded", function () {
             const data = await response.json();
             console.log("User added:", data);
             loadUsers();
-            closeUserModal();
+            closeAddUser();
         } catch (error) {
             console.error("Error adding user:", error);
         }
+        
+    };
+
+    window.closeAddUser = function () {
+        document.getElementById("addUser").style.display = "none";
     };
 
     window.deleteUser = async function (userId) {
@@ -267,9 +274,9 @@ document.addEventListener("DOMContentLoaded", function () {
     
         window.closeEditUserModal();
     };
-    
-    
 
 
+   
+    
     loadUsers();
 });
