@@ -228,4 +228,4 @@ document.addEventListener("DOMContentLoaded", function () {
     loadAllTasks();
     // Also, load users into the assign task modal on page load (optional)
     window.loadUsersForAdminAssign("assignTaskAssignedTo");
-}); F
+}); 

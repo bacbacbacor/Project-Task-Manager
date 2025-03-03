@@ -199,6 +199,49 @@
         </div>
     </div>
 
+    <!-- Generate Report Section -->
+    <button id="generateReportBtn">Generate Task Report</button>
+
+    <!-- Report Modal -->
+    <div id="reportModal" class="modal">
+        <div class="modal-content">
+            <h2>Task Report</h2>
+            <label for="selectUserReport">Select User:</label>
+            <select id="selectUserReport">
+                <option value="">Select a user</option>
+            </select>
+
+            <label for="reportStartDate">Start Date:</label>
+            <input type="date" id="reportStartDate">
+
+            <label for="reportEndDate">End Date:</label>
+            <input type="date" id="reportEndDate">
+
+            <button id="previewReportBtn">Preview Report</button>
+            <button id="downloadReportBtn" style="display:none;">Download PDF</button>
+            <button id="closeReportModalBtn">Close</button>
+
+            <div id="reportPreview"></div>
+        </div>
+    </div>
+
+    <!-- html2canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js">
+    </script>
+
+    <!-- jsPDF 2.5.1 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
+    </script>
+
+
+
+
+    <!-- Include jsPDF from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Include the new Admin Report JS file -->
+    <script src="js/adminReport.js"></script>
+
+
     <!-- Scripts -->
     <script src="js/adminTaskManager.js"></script>
     <script src="js/logout.js"></script>
