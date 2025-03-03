@@ -126,33 +126,30 @@
     </div>
 
 
-    <!-- Generate Report Button -->
-    <button onclick="openReportModal()">Generate Task Report</button>
+    <!-- Generate Report Section for Manager -->
+    <button id="generateManagerReportBtn">Generate Task Report</button>
 
-    <!-- Report Modal -->
-    <div id="reportModal" class="modal">
+    <!-- Manager Report Modal -->
+    <div id="managerReportModal" class="modal">
         <div class="modal-content">
             <h2>Task Report</h2>
+            <!-- Dropdown: "My Tasks" is default, then list of employees in same office -->
+            <label for="managerReportUserSelect">Select User:</label>
+            <select id="managerReportUserSelect">
+                <option value="self">My Tasks</option>
+            </select>
 
-            <label for="startDate">Start Date:</label>
-            <input type="date" id="startDate">
+            <label for="managerReportStartDate">Start Date:</label>
+            <input type="date" id="managerReportStartDate">
 
-            <label for="endDate">End Date:</label>
-            <input type="date" id="endDate">
+            <label for="managerReportEndDate">End Date:</label>
+            <input type="date" id="managerReportEndDate">
 
-            <!-- Show user selection only for Admins -->
-            <div id="adminUserSelection">
-                <label for="selectUser">Select User:</label>
-                <select id="selectUser">
-                    <option value="">Select a User</option>
-                </select>
-            </div>
+            <button id="previewManagerReportBtn">Preview Report</button>
+            <button id="downloadManagerReportBtn" style="display:none;">Download PDF</button>
+            <button id="closeManagerReportModalBtn">Close</button>
 
-            <button onclick="previewReport()">Preview Report</button>
-            <button id="downloadReport" onclick="generatePDF()" style="display: none;">Download PDF</button>
-            <button id="closeReportModal">Close</button>
-
-            <div id="previewReport"></div>
+            <div id="managerReportPreview"></div>
         </div>
     </div>
 
@@ -177,6 +174,13 @@
             width: 50%;
         }
     </style>
+
+    <!-- Include html2canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Include jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Include Manager Report Script -->
+    <script src="js/managerReport.js"></script>
 
     <script src="js/logout.js"></script>
     <script src="js/taskManager.js"></script>
