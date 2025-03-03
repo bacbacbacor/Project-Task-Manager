@@ -81,7 +81,9 @@
                 <label for="birthday">Birthday:</label>
                 <input type="date" id="birthday">
 
+                <!-- Save User Button calls addUser(), which will now close the modal on success -->
                 <button class="save-user-btn" onclick="addUser()">Save User</button>
+                <!-- UPDATED: Cancel button now correctly calls closeUserModal() -->
                 <button class="cancel-btn" onclick="closeUserModal()">Cancel</button>
             </div>
         </div>

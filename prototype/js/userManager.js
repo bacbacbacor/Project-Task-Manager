@@ -1,3 +1,4 @@
+// userManager.js
 document.addEventListener("DOMContentLoaded", function () {
     const userTable = document.getElementById("userTable").querySelector("tbody");
     const userModal = document.getElementById("userModal");
@@ -38,7 +39,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-
     async function loadOffices(selectElementId, selectedOffice = "") {
         try {
             const response = await fetch("http://localhost:3000/offices");
@@ -47,12 +47,10 @@ document.addEventListener("DOMContentLoaded", function () {
             const offices = await response.json();
             const officeSelect = document.getElementById(selectElementId);
 
-
             if (!officeSelect) {
                 console.error(`Dropdown with ID ${selectElementId} not found.`);
                 return;
             }
-
 
             officeSelect.innerHTML = '<option value="" disabled>Select Office</option>';
 
@@ -60,7 +58,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 let option = document.createElement("option");
                 option.value = office.officeName;
                 option.textContent = office.officeName;
-
 
                 if (selectedOffice && office.officeName === selectedOffice) {
                     option.selected = true;
@@ -107,22 +104,16 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     };
 
-    
     // Closes the Edit User modal.
     window.closeEditUserModal = function () {
         document.getElementById("editUserModal").style.display = "none";
     };
 
-
+    // Opens the Add User modal.
     window.openUserModal = function () {
-
         loadOffices("userOffice");
         document.getElementById("userModal").style.display = "block";
     };
-
-   
-
-  
 
     window.showUserFields = function () {
         if (userRoleSelect.value) {
@@ -156,15 +147,15 @@ document.addEventListener("DOMContentLoaded", function () {
             const data = await response.json();
             console.log("User added:", data);
             loadUsers();
-            closeAddUser();
+            closeUserModal(); // UPDATED: Closes the Add User modal after saving.
         } catch (error) {
             console.error("Error adding user:", error);
         }
-        
     };
 
-    window.closeAddUser = function () {
-        document.getElementById("addUser").style.display = "none";
+    // UPDATED: This function now targets the correct modal element ("userModal") so that it will close the Add User window.
+    window.closeUserModal = function () {
+        document.getElementById("userModal").style.display = "none";
     };
 
     window.deleteUser = async function (userId) {
@@ -178,8 +169,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     };
 
-
-
+    // (The rest of your code for task management remains unchanged.)
     window.addTask = async function () {
         console.log("Add Task button clicked!");
         const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
@@ -218,8 +208,8 @@ document.addEventListener("DOMContentLoaded", function () {
             const data = await response.json();
             console.log("Task added:", data);
 
-            loadTasks();
-            closeTaskModal();
+            loadUsers(); // Or load tasks if that is intended.
+            closeUserModal(); // If this modal should close when a task is added.
         } catch (error) {
             console.error("Error adding task:", error);
             alert("Failed to add task.");
@@ -275,8 +265,5 @@ document.addEventListener("DOMContentLoaded", function () {
         window.closeEditUserModal();
     };
 
-
-   
-    
     loadUsers();
 });

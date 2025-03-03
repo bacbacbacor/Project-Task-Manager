@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
             console.log("Logged In User:", loggedInUser);
-            const url = `http://localhost:3000/tasks?userId=${loggedInUser.id}&role=${loggedInUser.role}&office=${loggedInUser.office}`;
+            const url = `${API_URL}/tasks?userId=${loggedInUser.id}&role=${loggedInUser.role}&office=${loggedInUser.office}`;
             console.log("Fetching tasks from:", url);
             fetch(url)
                 .then(response => response.json())
@@ -98,7 +98,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 console.error("Manager not found or incorrect role.");
                 return;
             }
-            const response = await fetch(`${API_URL}/users`);
+            const response = await fetch("http://localhost:3000/users");
             if (!response.ok) throw new Error("Failed to fetch users.");
             const users = await response.json();
             const assignedToSelect = document.getElementById("assignedTo");
@@ -117,15 +117,8 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // Open and Close Assign Task Modal
-    window.openAssignTaskModal = function () {
-        document.getElementById("assignTaskModal").style.display = "block";
-        loadUsersForManager();
-    };
-
-    window.closeAssignTaskModal = function () {
-        document.getElementById("assignTaskModal").style.display = "none";
-    };
+    // Make loadUsersForManager globally accessible
+    window.loadUsersForManager = loadUsersForManager;
 
     // Delete Task
     window.deleteTask = async function (taskId) {
@@ -137,11 +130,19 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     };
 
-    // Expose functions globally
-    window.openAssignTaskModal = openAssignTaskModal;
-    window.closeAssignTaskModal = closeAssignTaskModal;
-    window.assignTask = assignTask;
-    window.deleteTask = deleteTask;
-
+    // Load tasks on page load
     loadTasks();
+
+    // Make assignTask globally accessible
+    window.assignTask = assignTask;
 });
+
+// Open and Close Assign Task Modal (now defined globally)
+window.openAssignTaskModal = function () {
+    document.getElementById("assignTaskModal").style.display = "block";
+    window.loadUsersForManager(); // use the globally accessible function
+};
+
+window.closeAssignTaskModal = function () {
+    document.getElementById("assignTaskModal").style.display = "none";
+};
