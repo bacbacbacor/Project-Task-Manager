@@ -33,6 +33,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         <td>${task.createdBy || "Unknown"}</td>
                         <td>${task.assignedTo || "Unknown"}</td>
                         <td>
+                            <button onclick="editTask(${task.id})">✏️ Edit</button>
                             <button onclick="deleteTask(${task.id})">🗑 Delete</button>
                         </td>
                     </tr>
@@ -88,58 +89,65 @@ document.addEventListener("DOMContentLoaded", function () {
 
     window.editTask = async function (taskId) {
         try {
-            console.log(`Fetching task ${taskId} for editing...`);
-            const response = await fetch(`${API_URL}/${taskId}`);
-            if (!response.ok) throw new Error("Failed to fetch task details.");
-            const task = await response.json();
-            console.log("Task data:", task);
-
-            document.getElementById("editTaskId").value = task.id;
-            document.getElementById("editTaskTitle").value = task.title;
-            document.getElementById("editTaskDescription").value = task.description;
-            document.getElementById("editStartDate").value = task.startDate;
-            document.getElementById("editEndDate").value = task.endDate;
-            document.getElementById("editTaskStatus").value = task.status;
-
-            editTaskModal.style.display = "block";
+          console.log(`Fetching task ${taskId} for editing...`);
+          const response = await fetch(`${API_URL}/${taskId}`);
+          if (!response.ok) throw new Error("Failed to fetch task details.");
+          const task = await response.json();
+          console.log("Task data:", task);
+      
+          // Populate the fields for editing
+          document.getElementById("editTaskId").value = task.id;
+          document.getElementById("editTaskTitle").value = task.title;
+          document.getElementById("editTaskDescription").value = task.description;
+          document.getElementById("editStartDate").value = task.startDate ? task.startDate.split("T")[0] : "";
+          document.getElementById("editEndDate").value = task.endDate ? task.endDate.split("T")[0] : "";
+          document.getElementById("editTaskStatus").value = task.status;
+          
+          // Instead of loading a dropdown for assignedTo, store it in a global variable
+          window.currentTaskAssignedTo = task.assignedTo;
+      
+          // Show the edit modal
+          document.getElementById("editTaskModal").style.display = "block";
         } catch (error) {
-            console.error("Error fetching task details:", error);
+          console.error("Error fetching task details:", error);
         }
-    };
+      };
+      
 
     window.closeEditTaskModal = function () {
         editTaskModal.style.display = "none";
     };
 
     window.updateTask = async function () {
-        const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
         const taskId = document.getElementById("editTaskId").value;
-
+      
         const updatedTask = {
-            username: loggedInUser.username,
-            title: document.getElementById("editTaskTitle").value.trim(),
-            description: document.getElementById("editTaskDescription").value.trim(),
-            startDate: document.getElementById("editStartDate").value,
-            endDate: document.getElementById("editEndDate").value,
-            status: document.getElementById("editTaskStatus").value
+          title: document.getElementById("editTaskTitle").value.trim(),
+          description: document.getElementById("editTaskDescription").value.trim(),
+          startDate: document.getElementById("editStartDate").value,
+          endDate: document.getElementById("editEndDate").value,
+          status: document.getElementById("editTaskStatus").value,
+          // Use the stored assignedTo value
+          assignedTo: window.currentTaskAssignedTo || null
         };
-
+      
         try {
-            const response = await fetch(`${API_URL}/${taskId}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(updatedTask)
-            });
-            if (!response.ok) throw new Error("Failed to update task.");
-            const data = await response.json();
-            console.log("Task updated:", data);
-
-            loadTasks();
-            closeEditTaskModal();
+          const response = await fetch(`${API_URL}/${taskId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(updatedTask)
+          });
+          if (!response.ok) throw new Error("Failed to update task.");
+          const data = await response.json();
+          console.log("Task updated:", data);
+      
+          loadTasks();
+          closeEditTaskModal();
         } catch (error) {
-            console.error("Error updating task:", error);
+          console.error("Error updating task:", error);
         }
-    };
+      };
+      
 
     window.deleteTask = async function(taskId) {
         try {

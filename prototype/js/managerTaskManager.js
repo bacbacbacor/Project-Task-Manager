@@ -20,18 +20,22 @@ document.addEventListener("DOMContentLoaded", function () {
                     taskTable.innerHTML = tasks.length === 0
                         ? "<tr><td colspan='7'>No tasks assigned.</td></tr>"
                         : tasks.map(task => `
-                            <tr>
-                                <td>${task.title}</td>
-                                <td>${task.description}</td>
-                                <td>${task.startDate}</td>
-                                <td>${task.endDate}</td>
-                                <td>${task.status}</td>
-                                <td>${task.assignedTo || "Unknown"}</td>
-                                <td>
-                                    <button onclick="deleteTask(${task.id})">🗑 Delete</button>
-                                </td>
-                            </tr>
-                        `).join("");
+        <tr>
+            <td>${task.title}</td>
+            <td>${task.description}</td>
+            <td>${task.startDate}</td>
+            <td>${task.endDate}</td>
+            <td>${task.status}</td>
+            <td>${task.createdBy || "Unknown"}</td>
+            <td>${task.assignedTo || "Unknown"}</td>
+            
+
+            <td>
+                <button onclick="editTask(${task.id})">✏️ Edit</button>
+                <button onclick="deleteTask(${task.id})">🗑 Delete</button>
+            </td>
+        </tr>
+    `).join("");
                 })
                 .catch(error => console.error("Error loading tasks:", error));
         } catch (error) {
@@ -130,6 +134,123 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     };
 
+    window.editTask = async function(taskId) {
+        try {
+          const response = await fetch(`${API_URL}/tasks/${taskId}`);
+          if (!response.ok) throw new Error("Failed to fetch task details.");
+          const task = await response.json();
+          
+          // Populate modal fields
+          document.getElementById("editTaskId").value = task.id;
+          document.getElementById("editTaskTitle").value = task.title;
+          document.getElementById("editTaskDescription").value = task.description;
+          document.getElementById("editStartDate").value = task.startDate ? task.startDate.split("T")[0] : "";
+          document.getElementById("editEndDate").value = task.endDate ? task.endDate.split("T")[0] : "";
+          document.getElementById("editTaskStatus").value = task.status;
+          
+          // Save the current assignedTo value
+          window.currentTaskAssignedTo = task.assignedTo;
+          
+          document.getElementById("editTaskModal").style.display = "block";
+        } catch (error) {
+          console.error("Error fetching task details for editing:", error);
+          alert("Error loading task for editing.");
+        }
+      };
+
+
+       // Load only employees from the same office as the logged-in manager.
+  window.loadEmployeesForManager = async function () {
+    try {
+      const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
+      if (!loggedInUser || loggedInUser.role !== "Manager") {
+        console.error("Manager not logged in or incorrect role.");
+        return;
+      }
+      const response = await fetch(`${API_URL}/users`);
+      if (!response.ok) throw new Error("Failed to fetch users.");
+      const users = await response.json();
+      const employeeSelect = document.getElementById("managerAssignEmployeeSelect");
+      employeeSelect.innerHTML = '<option value="">Select Employee</option>';
+      users.forEach(user => {
+        // Ensure case-insensitive comparison and trim spaces
+        if (
+          user.role === "Employee" &&
+          user.office.trim().toLowerCase() === loggedInUser.office.trim().toLowerCase()
+        ) {
+          let option = document.createElement("option");
+          option.value = user.id;
+          option.textContent = `${user.firstName} ${user.lastName}`;
+          employeeSelect.appendChild(option);
+        }
+      });
+    } catch (error) {
+      console.error("Error loading employees:", error);
+    }
+  };
+
+  // Open the Manager Assign Task Modal and load eligible employees.
+  window.openManagerAssignTaskModal = function () {
+    document.getElementById("managerAssignTaskModal").style.display = "block";
+    window.loadEmployeesForManager();
+  };
+
+  // Close the Manager Assign Task Modal.
+  window.closeManagerAssignTaskModal = function () {
+    document.getElementById("managerAssignTaskModal").style.display = "none";
+  };
+
+  // Submit a new task assignment from the manager.
+  window.managerAssignTask = async function () {
+    const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
+    if (!loggedInUser || loggedInUser.role !== "Manager") {
+      alert("You must be logged in as a Manager.");
+      return;
+    }
+    // Gather values from the modal.
+    const title = document.getElementById("managerAssignTaskTitle").value.trim();
+    const description = document.getElementById("managerAssignTaskDescription").value.trim();
+    const startDate = document.getElementById("managerAssignStartDate").value;
+    const endDate = document.getElementById("managerAssignEndDate").value;
+    const status = document.getElementById("managerAssignTaskStatus").value;
+    const assignedTo = document.getElementById("managerAssignEmployeeSelect").value;
+
+    if (!title || !startDate || !endDate || !status || !assignedTo) {
+      alert("Please fill in all required fields.");
+      return;
+    }
+
+    const taskData = {
+      title,
+      description,
+      startDate,
+      endDate,
+      status,
+      assignedTo,         // This should be the employee's numeric ID.
+      createdBy: loggedInUser.id
+    };
+
+    try {
+      const response = await fetch(`${API_URL}/tasks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(taskData)
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText);
+      }
+      alert("Task assigned successfully!");
+      window.closeManagerAssignTaskModal();
+      // Optionally reload tasks or update the UI accordingly.
+      // loadTasks();
+    } catch (error) {
+      console.error("Error assigning task:", error);
+      alert("Error assigning task: " + error.message);
+    }
+  };
+      
+
     // Load tasks on page load
     loadTasks();
 
@@ -137,11 +258,7 @@ document.addEventListener("DOMContentLoaded", function () {
     window.assignTask = assignTask;
 });
 
-// Open and Close Assign Task Modal (now defined globally)
-window.openAssignTaskModal = function () {
-    document.getElementById("assignTaskModal").style.display = "block";
-    window.loadUsersForManager(); // use the globally accessible function
-};
+
 
 window.closeAssignTaskModal = function () {
     document.getElementById("assignTaskModal").style.display = "none";
