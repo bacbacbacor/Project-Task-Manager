@@ -28,8 +28,6 @@ document.addEventListener("DOMContentLoaded", function () {
             <td>${task.status}</td>
             <td>${task.createdBy || "Unknown"}</td>
             <td>${task.assignedTo || "Unknown"}</td>
-            
-
             <td>
                 <button onclick="editTask(${task.id})">✏️ Edit</button>
                 <button onclick="deleteTask(${task.id})">🗑 Delete</button>
@@ -242,7 +240,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
       alert("Task assigned successfully!");
       window.closeManagerAssignTaskModal();
-      // Optionally reload tasks or update the UI accordingly.
+      
       // loadTasks();
     } catch (error) {
       console.error("Error assigning task:", error);
