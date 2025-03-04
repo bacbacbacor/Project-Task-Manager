@@ -10,27 +10,23 @@ document.addEventListener("DOMContentLoaded", function () {
     const startDateInput = document.getElementById("managerReportStartDate");
     const endDateInput = document.getElementById("managerReportEndDate");
 
-    // Open the Report Modal and load employees from same office
     generateBtn.addEventListener("click", async () => {
         reportModal.style.display = "block";
         await loadEmployeesForReport();
     });
 
-    // Close the Report Modal
     closeBtn.addEventListener("click", () => {
         reportModal.style.display = "none";
         reportPreview.innerHTML = "";
         downloadBtn.style.display = "none";
     });
 
-    // Load employees in the same office as the logged-in manager
     async function loadEmployeesForReport() {
         const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
         if (!loggedInUser || loggedInUser.role !== "Manager") {
             alert("You must be logged in as a Manager.");
             return;
         }
-        // Clear dropdown except for the "My Tasks" option
         userSelect.innerHTML = `<option value="self">My Tasks</option>`;
 
         try {
@@ -38,7 +34,6 @@ document.addEventListener("DOMContentLoaded", function () {
             if (!response.ok) throw new Error("Failed to load users.");
             const users = await response.json();
             users.forEach(user => {
-                // Only include employees in the same office
                 if (user.role === "Employee" && user.office.trim().toLowerCase() === loggedInUser.office.trim().toLowerCase()) {
                     let option = document.createElement("option");
                     option.value = user.id;
@@ -51,7 +46,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // Preview Report: fetch tasks and filter by date range
     previewBtn.addEventListener("click", async () => {
         const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
         if (!loggedInUser) {
@@ -67,18 +61,15 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         try {
             let tasks = [];
-            // If "My Tasks" is selected, fetch tasks for the manager (created or assigned to manager)
             if (selectedValue === "self") {
                 const response = await fetch(`${API_URL}/tasks?userId=${loggedInUser.id}&role=${loggedInUser.role}&office=${encodeURIComponent(loggedInUser.office)}`);
                 if (!response.ok) throw new Error("Failed to fetch tasks.");
                 tasks = await response.json();
             } else {
-                // Fetch tasks for the selected employee
                 const response = await fetch(`${API_URL}/tasks?userId=${selectedValue}`);
                 if (!response.ok) throw new Error("Failed to fetch tasks.");
                 tasks = await response.json();
             }
-            // Filter tasks by the provided date range (using task.startDate)
             const filteredTasks = tasks.filter(task => {
                 const taskDate = new Date(task.startDate);
                 return taskDate >= new Date(startDate) && taskDate <= new Date(endDate);
@@ -109,10 +100,9 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Download Report as PDF using jsPDF and html2canvas
     downloadBtn.addEventListener("click", () => {
         const { jsPDF } = window.jspdf;
-        const doc = new jsPDF("p", "mm", "a4"); // portrait, millimeters, A4 size
+        const doc = new jsPDF("p", "mm", "a4"); 
 
         doc.html(document.getElementById("managerReportPreview"), {
             callback: function (doc) {
@@ -120,10 +110,10 @@ document.addEventListener("DOMContentLoaded", function () {
             },
             x: 10,
             y: 10,
-            width: 180, // target PDF width (A4 is ~210mm, leaving margins)
-            windowWidth: document.getElementById("managerReportPreview").offsetWidth, // capture at the element's natural width
+            width: 180, 
+            windowWidth: document.getElementById("managerReportPreview").offsetWidth, 
             html2canvas: {
-                scale: 0.295 // adjust scale; lower if it's too zoomed in
+                scale: 0.295 
             }
         });
 

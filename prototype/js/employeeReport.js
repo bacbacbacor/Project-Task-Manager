@@ -9,21 +9,18 @@ document.addEventListener("DOMContentLoaded", function () {
     const startDateInput = document.getElementById("employeeReportStartDate");
     const endDateInput = document.getElementById("employeeReportEndDate");
 
-    // Open the report modal when the button is clicked
     generateBtn.addEventListener("click", () => {
         reportModal.style.display = "block";
-        reportPreview.innerHTML = ""; // Clear previous content if any
+        reportPreview.innerHTML = ""; 
         downloadBtn.style.display = "none";
     });
 
-    // Close the report modal
     closeBtn.addEventListener("click", () => {
         reportModal.style.display = "none";
         reportPreview.innerHTML = "";
         downloadBtn.style.display = "none";
     });
 
-    // Preview Report: fetch tasks for the logged-in employee and filter by date range
     previewBtn.addEventListener("click", async () => {
         const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
         if (!loggedInUser) {
@@ -38,19 +35,15 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         try {
-            // Fetch tasks for the employee.
-            // Assuming the tasks API filters by userId (employee's own tasks)
             const response = await fetch(`${API_URL}/tasks?userId=${loggedInUser.id}`);
             if (!response.ok) throw new Error("Failed to fetch tasks.");
             const tasks = await response.json();
 
-            // Filter tasks by the provided date range (using task.startDate)
             const filteredTasks = tasks.filter(task => {
                 const taskDate = new Date(task.startDate);
                 return taskDate >= new Date(startDate) && taskDate <= new Date(endDate);
             });
 
-            // Build preview content
             if (filteredTasks.length === 0) {
                 reportPreview.innerHTML = "<p>No tasks found for the selected date range.</p>";
                 downloadBtn.style.display = "none";
@@ -77,10 +70,9 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Download the preview as a PDF using jsPDF and html2canvas
     downloadBtn.addEventListener("click", () => {
         const { jsPDF } = window.jspdf;
-        const doc = new jsPDF("p", "mm", "a4"); // portrait, A4 size in millimeters
+        const doc = new jsPDF("p", "mm", "a4"); 
 
         doc.html(reportPreview, {
             callback: function (doc) {
@@ -88,10 +80,10 @@ document.addEventListener("DOMContentLoaded", function () {
             },
             x: 10,
             y: 10,
-            width: 180, // PDF target width (A4 ~210mm, leaving margins)
+            width: 180,
             windowWidth: document.getElementById("employeeReportPreview").offsetWidth, // Use element's natural width
             html2canvas: {
-                scale: 0.295 // Adjust scale if needed (reduce if too zoomed in)
+                scale: 0.295
             }
         });
     });

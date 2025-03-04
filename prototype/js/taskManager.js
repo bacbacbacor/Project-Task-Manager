@@ -8,12 +8,10 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
             const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
             console.log("Logged in user:", loggedInUser);
-            // Ensure all required properties exist
             if (!loggedInUser || !loggedInUser.id || !loggedInUser.role || !loggedInUser.office) {
                 alert("You must be logged in with proper credentials.");
                 return;
             }
-            // Corrected: remove the extra '/tasks' from the URL
             const url = `${API_URL}?userId=${loggedInUser.id}&role=${loggedInUser.role}&office=${encodeURIComponent(loggedInUser.office)}`;
             console.log("Fetching tasks from:", url);
             const response = await fetch(url);
@@ -94,19 +92,13 @@ document.addEventListener("DOMContentLoaded", function () {
           if (!response.ok) throw new Error("Failed to fetch task details.");
           const task = await response.json();
           console.log("Task data:", task);
-      
-          // Populate the fields for editing
           document.getElementById("editTaskId").value = task.id;
           document.getElementById("editTaskTitle").value = task.title;
           document.getElementById("editTaskDescription").value = task.description;
           document.getElementById("editStartDate").value = task.startDate ? task.startDate.split("T")[0] : "";
           document.getElementById("editEndDate").value = task.endDate ? task.endDate.split("T")[0] : "";
           document.getElementById("editTaskStatus").value = task.status;
-          
-          // Instead of loading a dropdown for assignedTo, store it in a global variable
           window.currentTaskAssignedTo = task.assignedTo;
-      
-          // Show the edit modal
           document.getElementById("editTaskModal").style.display = "block";
         } catch (error) {
           console.error("Error fetching task details:", error);
@@ -127,7 +119,6 @@ document.addEventListener("DOMContentLoaded", function () {
           startDate: document.getElementById("editStartDate").value,
           endDate: document.getElementById("editEndDate").value,
           status: document.getElementById("editTaskStatus").value,
-          // Use the stored assignedTo value
           assignedTo: window.currentTaskAssignedTo || null
         };
       

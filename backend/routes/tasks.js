@@ -35,11 +35,11 @@ router.get("/", async (req, res) => {
         }
     }
 
-    
+
     if (conditions.length > 0) {
         baseQuery += " WHERE " + conditions.join(" AND ");
     }
-    
+
     console.log("Executing Query:", baseQuery);
     console.log("With Parameters:", queryParams);
 
@@ -48,10 +48,10 @@ router.get("/", async (req, res) => {
         console.log("Tasks Retrieved:", tasks);
         res.json(tasks);
     } catch (error) {
-        console.error("❌ Error fetching tasks from MySQL:", error);
+        console.error(" Error fetching tasks from MySQL:", error);
         res.status(500).json({ message: "Server error while fetching tasks." });
     }
-}); 
+});
 
 
 // POST: Create a new task (Managers can only assign to employees in the same office)
@@ -110,7 +110,7 @@ router.put("/:id", async (req, res) => {
         }
         res.json({ message: "Task updated successfully." });
     } catch (error) {
-        console.error("❌ Error updating task:", error);
+        console.error("Error updating task:", error);
         res.status(500).json({ message: "Server error while updating task." });
     }
 });
