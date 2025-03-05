@@ -8,19 +8,20 @@ document.addEventListener("DOMContentLoaded", function () {
     const closeReportModalBtn = document.getElementById("closeReportModalBtn");
     const reportPreview = document.getElementById("reportPreview");
 
-   
+    // Open the Report Modal and load users
     generateReportBtn.addEventListener("click", async () => {
         reportModal.style.display = "block";
         await loadUsersForReport();
     });
 
-    
+    // Close the Report Modal
     closeReportModalBtn.addEventListener("click", () => {
         reportModal.style.display = "none";
         reportPreview.innerHTML = "";
         downloadReportBtn.style.display = "none";
     });
 
+    // Load managers and employees (excluding Admin) into the dropdown
     async function loadUsersForReport() {
         try {
             const response = await fetch(`${API_URL}/users`);
@@ -40,6 +41,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    // Preview Report: fetch tasks for the selected user and filter by date range
     previewReportBtn.addEventListener("click", async () => {
         const userId = selectUserReport.value;
         const startDate = document.getElementById("reportStartDate").value;
@@ -53,6 +55,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const response = await fetch(`${API_URL}/tasks?userId=${userId}`);
             if (!response.ok) throw new Error("Failed to fetch tasks.");
             const tasks = await response.json();
+            // Filter tasks by the provided date range (using task.startDate)
             const filteredTasks = tasks.filter(task => {
                 const taskDate = new Date(task.startDate);
                 return taskDate >= new Date(startDate) && taskDate <= new Date(endDate);
@@ -83,6 +86,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
+    // Download Report as PDF using jsPDF
     downloadReportBtn.addEventListener("click", () => {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();

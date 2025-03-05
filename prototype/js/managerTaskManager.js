@@ -1,6 +1,8 @@
 document.addEventListener("DOMContentLoaded", function () {
     const API_URL = "http://localhost:3000";
     const taskTable = document.getElementById("taskTable").querySelector("tbody");
+
+    // Load tasks for Manager
     async function loadTasks() {
         try {
             const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
@@ -14,7 +16,7 @@ document.addEventListener("DOMContentLoaded", function () {
             fetch(url)
                 .then(response => response.json())
                 .then(tasks => {
-                    console.log("Tasks fetched from API:", tasks);
+                    console.log("✅ Tasks fetched from API:", tasks);
                     taskTable.innerHTML = tasks.length === 0
                         ? "<tr><td colspan='7'>No tasks assigned.</td></tr>"
                         : tasks.map(task => `
@@ -39,6 +41,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    // Assign Task (Manager to Employee in the Same Office)
     async function assignTask() {
         console.log("📌 Assign Task function triggered.");
         const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
@@ -46,6 +49,7 @@ document.addEventListener("DOMContentLoaded", function () {
             alert("❌ Only Managers can assign tasks.");
             return;
         }
+        // Get values from the assign task modal
         const taskTitle = document.getElementById("assignTaskTitle").value.trim();
         const taskDescription = document.getElementById("assignTaskDescription").value.trim();
         const startDate = document.getElementById("assignStartDate").value;
@@ -79,7 +83,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 const errorMessage = await response.text();
                 throw new Error(`Failed to assign task: ${errorMessage}`);
             }
-            alert("Task assigned successfully!");
+            alert("✅ Task assigned successfully!");
             document.getElementById("assignTaskModal").style.display = "none";
             loadTasks();
         } catch (error) {
@@ -88,6 +92,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    // Load employees for Manager (only those in the same office)
     async function loadUsersForManager() {
         try {
             const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
@@ -101,6 +106,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const assignedToSelect = document.getElementById("assignedTo");
             assignedToSelect.innerHTML = '<option value="">Select User</option>';
             users.forEach(user => {
+                // Only include employees in the same office (exclude managers and self)
                 if (user.office === loggedInUser.office && user.role === "Employee") {
                     let option = document.createElement("option");
                     option.value = user.id;
@@ -113,8 +119,10 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    // Make loadUsersForManager globally accessible
     window.loadUsersForManager = loadUsersForManager;
 
+    // Delete Task
     window.deleteTask = async function (taskId) {
         try {
             await fetch(`${API_URL}/tasks/${taskId}`, { method: "DELETE" });
@@ -130,6 +138,7 @@ document.addEventListener("DOMContentLoaded", function () {
           if (!response.ok) throw new Error("Failed to fetch task details.");
           const task = await response.json();
           
+          // Populate modal fields
           document.getElementById("editTaskId").value = task.id;
           document.getElementById("editTaskTitle").value = task.title;
           document.getElementById("editTaskDescription").value = task.description;
@@ -137,6 +146,7 @@ document.addEventListener("DOMContentLoaded", function () {
           document.getElementById("editEndDate").value = task.endDate ? task.endDate.split("T")[0] : "";
           document.getElementById("editTaskStatus").value = task.status;
           
+          // Save the current assignedTo value
           window.currentTaskAssignedTo = task.assignedTo;
           
           document.getElementById("editTaskModal").style.display = "block";
@@ -147,6 +157,7 @@ document.addEventListener("DOMContentLoaded", function () {
       };
 
 
+       // Load only employees from the same office as the logged-in manager.
   window.loadEmployeesForManager = async function () {
     try {
       const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
@@ -160,6 +171,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const employeeSelect = document.getElementById("managerAssignEmployeeSelect");
       employeeSelect.innerHTML = '<option value="">Select Employee</option>';
       users.forEach(user => {
+        // Ensure case-insensitive comparison and trim spaces
         if (
           user.role === "Employee" &&
           user.office.trim().toLowerCase() === loggedInUser.office.trim().toLowerCase()
@@ -175,21 +187,25 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   };
 
+  // Open the Manager Assign Task Modal and load eligible employees.
   window.openManagerAssignTaskModal = function () {
     document.getElementById("managerAssignTaskModal").style.display = "block";
     window.loadEmployeesForManager();
   };
 
+  // Close the Manager Assign Task Modal.
   window.closeManagerAssignTaskModal = function () {
     document.getElementById("managerAssignTaskModal").style.display = "none";
   };
 
+  // Submit a new task assignment from the manager.
   window.managerAssignTask = async function () {
     const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
     if (!loggedInUser || loggedInUser.role !== "Manager") {
       alert("You must be logged in as a Manager.");
       return;
     }
+    // Gather values from the modal.
     const title = document.getElementById("managerAssignTaskTitle").value.trim();
     const description = document.getElementById("managerAssignTaskDescription").value.trim();
     const startDate = document.getElementById("managerAssignStartDate").value;
@@ -208,7 +224,7 @@ document.addEventListener("DOMContentLoaded", function () {
       startDate,
       endDate,
       status,
-      assignedTo,         
+      assignedTo,         // This should be the employee's numeric ID.
       createdBy: loggedInUser.id
     };
 
@@ -224,13 +240,19 @@ document.addEventListener("DOMContentLoaded", function () {
       }
       alert("Task assigned successfully!");
       window.closeManagerAssignTaskModal();
+      
+      // loadTasks();
     } catch (error) {
       console.error("Error assigning task:", error);
       alert("Error assigning task: " + error.message);
     }
   };
       
+
+    // Load tasks on page load
     loadTasks();
+
+    // Make assignTask globally accessible
     window.assignTask = assignTask;
 });
 

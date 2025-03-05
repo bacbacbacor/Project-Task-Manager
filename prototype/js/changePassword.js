@@ -35,6 +35,7 @@ async function updatePassword() {
         if (response.ok) {
             alert("Password updated successfully! Redirecting to login...");
             
+            // ✅ Clear session and redirect to login
             localStorage.removeItem("loggedInUser");
             setTimeout(() => window.location.href = "index.html", 1500);
         } else {

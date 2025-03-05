@@ -1,6 +1,6 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
-const pool = require("../db"); // mport MySQL connection
+const pool = require("../db"); // ✅ Import MySQL connection
 
 const router = express.Router();
 
@@ -91,9 +91,9 @@ router.put("/:id", async (req, res) => {
             return res.status(404).json({ message: "User not found or no changes detected." });
         }
 
-        res.json({ message: " User updated successfully!" });
+        res.json({ message: "✅ User updated successfully!" });
     } catch (error) {
-        console.error(" Error updating user:", error);
+        console.error("❌ Error updating user:", error);
         res.status(500).json({ message: "Server error while updating user." });
     }
 });

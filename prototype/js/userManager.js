@@ -1,4 +1,4 @@
-
+// userManager.js
 document.addEventListener("DOMContentLoaded", function () {
     const userTable = document.getElementById("userTable").querySelector("tbody");
     const userModal = document.getElementById("userModal");
@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("totalEmployees").textContent = users.filter(user => user.role === "Employee").length;
 
             const userTable = document.getElementById("userTable").querySelector("tbody");
-            userTable.innerHTML = ""; 
+            userTable.innerHTML = ""; // Clear previous users
 
             users.forEach((user) => {
                 let row = `
@@ -35,7 +35,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 userTable.innerHTML += row;
             });
         } catch (error) {
-            console.error(" Error loading users:", error);
+            console.error("❌ Error loading users:", error);
         }
     }
 
@@ -72,14 +72,14 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    
+    // Opens the Edit User modal, populates the fields, and stores fallback values.
     window.editUser = async function (userId) {
         try {
             const response = await fetch(`http://localhost:3000/users/${userId}`);
             if (!response.ok) throw new Error("Failed to fetch user details.");
             const user = await response.json();
 
-            
+            // Populate modal fields with current values.
             document.getElementById("editUserId").value = user.id;
             document.getElementById("editFirstName").value = user.firstName || "";
             document.getElementById("editLastName").value = user.lastName || "";
@@ -89,6 +89,7 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("editAddress").value = user.address || "";
             document.getElementById("editBirthday").value = user.birthday || "";
 
+            // Store original values in modal's dataset for fallback.
             const modal = document.getElementById("editUserModal");
             modal.dataset.originalNumber = user.number || "";
             modal.dataset.originalAddress = user.address || "";
@@ -96,16 +97,19 @@ document.addEventListener("DOMContentLoaded", function () {
             modal.dataset.originalOffice = user.office || "";
             modal.dataset.originalRole = user.role || "";
 
+            // Show the modal.
             modal.style.display = "block";
         } catch (error) {
             console.error("Error fetching user details:", error);
         }
     };
 
+    // Closes the Edit User modal.
     window.closeEditUserModal = function () {
         document.getElementById("editUserModal").style.display = "none";
     };
 
+    // Opens the Add User modal.
     window.openUserModal = function () {
         loadOffices("userOffice");
         document.getElementById("userModal").style.display = "block";
@@ -143,12 +147,13 @@ document.addEventListener("DOMContentLoaded", function () {
             const data = await response.json();
             console.log("User added:", data);
             loadUsers();
-            closeUserModal(); 
+            closeUserModal(); // UPDATED: Closes the Add User modal after saving.
         } catch (error) {
             console.error("Error adding user:", error);
         }
     };
 
+    // UPDATED: This function now targets the correct modal element ("userModal") so that it will close the Add User window.
     window.closeUserModal = function () {
         document.getElementById("userModal").style.display = "none";
     };
@@ -164,6 +169,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     };
 
+    // (The rest of your code for task management remains unchanged.)
     window.addTask = async function () {
         console.log("Add Task button clicked!");
         const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
@@ -202,8 +208,8 @@ document.addEventListener("DOMContentLoaded", function () {
             const data = await response.json();
             console.log("Task added:", data);
 
-            loadUsers(); 
-            closeUserModal(); 
+            loadUsers(); // Or load tasks if that is intended.
+            closeUserModal(); // If this modal should close when a task is added.
         } catch (error) {
             console.error("Error adding task:", error);
             alert("Failed to add task.");
@@ -221,10 +227,12 @@ document.addEventListener("DOMContentLoaded", function () {
         let birthday = document.getElementById("editBirthday").value;
         const modal = document.getElementById("editUserModal");
         
+        // If birthday input is empty, fallback to the original value stored in dataset.
         if (!birthday && modal.dataset.originalBirthday) {
             birthday = modal.dataset.originalBirthday;
         }
         
+        // Convert birthday to the "YYYY-MM-DD" format, if a value exists.
         if (birthday) {
             birthday = new Date(birthday).toISOString().slice(0, 10);
         }
