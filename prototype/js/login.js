@@ -51,4 +51,6 @@ async function login() {
         errorMessage.textContent = "Error connecting to server.";
         console.error("Login error:", error);
     }
+
+    
 }

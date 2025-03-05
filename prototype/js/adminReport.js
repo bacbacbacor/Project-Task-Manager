@@ -86,7 +86,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Download Report as PDF using jsPDF
+    // Download Report as PDF using jsPDF 
     downloadReportBtn.addEventListener("click", () => {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
@@ -104,3 +104,4 @@ document.addEventListener("DOMContentLoaded", function () {
 
     });
 });
+// 
