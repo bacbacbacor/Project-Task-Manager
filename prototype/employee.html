@@ -63,58 +63,31 @@
         </div>
     </div>
 
-
+    
     <div id="editTaskModal" class="modal">
         <div class="modal-content">
-            <h2>Edit Task</h2>
-            <span class="close" onclick="closeEditTaskModal()">&times;</span>
-            <input type="hidden" id="editTaskId">
-            <label for="editTaskTitle">Title:</label>
-            <input type="text" id="editTaskTitle" required>
-            <label for="editTaskDescription">Description:</label>
-            <textarea id="editTaskDescription" required></textarea>
-            <label for="editStartDate">Start Date:</label>
-            <input type="date" id="editStartDate" required>
-            <label for="editEndDate">End Date:</label>
-            <input type="date" id="editEndDate" required>
-            <label for="editTaskStatus">Status:</label>
-            <select id="editTaskStatus">
-                <option value="Pending">Pending</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Completed">Completed</option>
-            </select>
-            <button onclick="updateTask()">Save Changes</button>
-            <button onclick="closeEditTaskModal()">Cancel</button>
+          <h2>Edit Task</h2>
+          <span class="close" onclick="closeEditTaskModal()">&times;</span>
+          <input type="hidden" id="editTaskId">
+          <label for="editTaskTitle">Title:</label>
+          <input type="text" id="editTaskTitle" required>
+          <label for="editTaskDescription">Description:</label>
+          <textarea id="editTaskDescription" required></textarea>
+          <label for="editStartDate">Start Date:</label>
+          <input type="date" id="editStartDate" required>
+          <label for="editEndDate">End Date:</label>
+          <input type="date" id="editEndDate" required>
+          <label for="editTaskStatus">Status:</label>
+          <select id="editTaskStatus">
+            <option value="Pending">Pending</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Completed">Completed</option>
+          </select> 
+          <button onclick="updateTask()">Save Changes</button>
+          <button onclick="closeEditTaskModal()">Cancel</button>
         </div>
-    </div>
-
-    <!-- Generate Report Section for Employees -->
-    <button id="generateEmployeeReportBtn">Compile My Tasks</button>
-
-    <!-- Employee Report Modal -->
-    <div id="employeeReportModal" class="modal">
-        <div class="modal-content">
-            <h2>My Task Report</h2>
-            <label for="employeeReportStartDate">Start Date:</label>
-            <input type="date" id="employeeReportStartDate">
-
-            <label for="employeeReportEndDate">End Date:</label>
-            <input type="date" id="employeeReportEndDate">
-
-            <button id="previewEmployeeReportBtn">Preview Report</button>
-            <button id="downloadEmployeeReportBtn" style="display:none;">Download PDF</button>
-            <button id="closeEmployeeReportModalBtn">Close</button>
-
-            <div id="employeeReportPreview"></div>
-        </div>
-    </div>
-
-    <!-- Include html2canvas (make sure it loads before jsPDF) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <!-- Include jsPDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <!-- Include the Employee Report Script -->
-    <script src="js/employeeReport.js"></script>    
+      </div>
+      
 
     <script src="js/logout.js"></script>
     <script src="js/taskManager.js"></script>
