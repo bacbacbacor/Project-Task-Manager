@@ -1,6 +1,13 @@
+
 {
   "dependencies": {
     "bcryptjs": "^3.0.2",
     "mysql2": "^3.12.0"
-  }
+  },
+  "scripts": {
+  "start": "sirv public --no-clear --dev --port=5001"
+
+
+}
+
 }
