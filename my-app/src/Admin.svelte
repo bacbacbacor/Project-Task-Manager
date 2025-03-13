@@ -66,11 +66,15 @@
     assignedTo: "",
   };
 
-  // Report generation
+  // Report generation variables
   let reportUserId = "";
   let reportStartDate = "";
   let reportEndDate = "";
   let reportPreviewHtml = "";
+
+  // New variables for filtering report: select manager then employee
+  let selectedManager = "";
+  let filteredEmployees = [];
 
   const API_URL = "http://localhost:3000";
 
@@ -279,20 +283,16 @@
   // ---------------------
   // Report Generation
   // ---------------------
-  async function loadUsersForReport() {
-    try {
-      const res = await fetch(`${API_URL}/users`);
-      const data = await res.json();
-      // Filter to managers & employees only
-      users = data.filter(
-        (user) => user.role === "Manager" || user.role === "Employee"
-      );
-    } catch (error) {
-      console.error("Error loading users for report:", error);
+  // Filter employees based on selected manager's office
+  function filterEmployees() {
+    const manager = users.find(u => u.id == selectedManager);
+    if (manager) {
+      filteredEmployees = users.filter(u => u.role === "Employee" && u.office === manager.office);
+    } else {
+      filteredEmployees = [];
     }
   }
 
-  // Updated previewReport for Admin:
   async function previewReport() {
     if (!reportUserId || !reportStartDate || !reportEndDate) {
       alert("Please select a user and a date range.");
@@ -302,11 +302,24 @@
       // Fetch all tasks (Admin has access to everything)
       const res = await fetch(`${API_URL}/tasks`);
       const allTasks = await res.json();
-      // Filter to only include tasks where the selected user is the creator or assignee, then filter by date range.
-      const filtered = allTasks.filter(task => {
-        return (task.createdBy == reportUserId || task.assignedTo == reportUserId) &&
-               (new Date(task.startDate) >= new Date(reportStartDate) && new Date(task.startDate) <= new Date(reportEndDate));
+
+      // Filter: user is creator or assignee, and date range overlaps
+      const filtered = allTasks.filter((task) => {
+        const belongsToUser =
+          task.createdBy == reportUserId || task.assignedTo == reportUserId;
+
+        const taskStart = new Date(task.startDate);
+        const taskEnd = new Date(task.endDate);
+        const filterStart = new Date(reportStartDate);
+        const filterEnd = new Date(reportEndDate);
+
+        // Overlap if taskStart <= filterEnd AND taskEnd >= filterStart
+        const overlaps =
+          taskStart <= filterEnd && taskEnd >= filterStart;
+
+        return belongsToUser && overlaps;
       });
+
       if (filtered.length === 0) {
         reportPreviewHtml = "<p>No tasks found for the selected criteria.</p>";
       } else {
@@ -483,7 +496,7 @@
       <section class="report-view">
         <button id="generateReport"
           class="primary-btn"
-          on:click={() => { showReportModal = true; loadUsersForReport(); }}
+          on:click={() => { showReportModal = true; }}
         >
           Generate Task Report
         </button>
@@ -676,17 +689,26 @@
       <div class="modal-content">
         <h2>Task Report</h2>
 
-        <label for="selectUser">Select User:</label>
-        <select id="selectUser" bind:value={reportUserId}>
-          <option value="" disabled>Select a user</option>
+        <!-- New Report Modal: First select a Manager, then filter employees -->
+        <label for="managerSelect">Select Manager:</label>
+        <select id="managerSelect" bind:value={selectedManager} on:change={filterEmployees}>
+          <option value="" disabled selected>Select Manager</option>
           {#each users as user (user.id)}
-            {#if user.role === "Manager" || user.role === "Employee"}
-              <option value={user.id}>
-                {user.firstName} {user.lastName} ({user.role})
-              </option>
+            {#if user.role === "Manager"}
+              <option value={user.id}>{user.firstName} {user.lastName}</option>
             {/if}
           {/each}
         </select>
+
+        {#if selectedManager}
+          <label for="employeeSelect">Select Employee:</label>
+          <select id="employeeSelect" bind:value={reportUserId}>
+            <option value="" disabled selected>Select Employee</option>
+            {#each filteredEmployees as emp (emp.id)}
+              <option value={emp.id}>{emp.firstName} {emp.lastName}</option>
+            {/each}
+          </select>
+        {/if}
 
         <label for="startDate">Start Date:</label>
         <input id="startDate" type="date" bind:value={reportStartDate} />
@@ -704,13 +726,7 @@
         {/if}
 
         <div class="modal-actions">
-          <button
-            class="cancel-btn"
-            on:click={() => {
-              showReportModal = false;
-              reportPreviewHtml = "";
-            }}
-          >
+          <button class="cancel-btn" on:click={() => { showReportModal = false; reportPreviewHtml = ""; }}>
             Close
           </button>
         </div>
@@ -720,6 +736,7 @@
 </div>
 
 <style>
+  /* (Same CSS as before) */
   /* Root Container */
   .admin-container {
     font-family: Arial, sans-serif;
@@ -744,8 +761,6 @@
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
     z-index: 999;
   }
-
-  /* Navigation Buttons */
   .nav-btn {
     background-color: #34495e;
     border: none;
@@ -760,8 +775,6 @@
     background-color: #2c3e50;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
-
-  /* Logout Button */
   .logout-btn {
     background-color: #e74c3c;
     border: none;
@@ -798,7 +811,7 @@
     text-align: center;
   }
 
-  /* Dashboard Cards - Align Horizontally */
+  /* Dashboard Cards */
   .dashboard-cards {
     display: flex;
     justify-content: center;

@@ -1,4 +1,4 @@
-How does this code works?
+How does this Project work?
 Admin can view,edit,delete all tasks of the managers and employees 
 Admin can view,edit,delete all the managers and employees
 Admin can generate all the tasks of the managers and employees and can download it as a PDF
@@ -9,3 +9,14 @@ Managers can generate their own tasks by selecting a date range, managers can al
 
 Employees can only add view edit and delete their own tasks
 Employees can only generate and download their tasks by selecting a date range.
+
+
+New Issue:
+
+In the Admin Dashboard the preview tasks doesnt properly get the specific tasks of a manager or employees based from a date range
+In the Manager Tasks, the preview tasks doesnt properly get the specific tasks of the employees under the same office based from a date range
+
+Target For Admin Dashboarad:
+When selecting an employee to generate the task, Admin can select a manager first then show the employees under that managers (dropdown options)
+
+Issue: as manager, the manager has no option to asign the tasks to himself, add in the dropdown in assign tasks a Assign to Myself so that the manager can add tasks to himself

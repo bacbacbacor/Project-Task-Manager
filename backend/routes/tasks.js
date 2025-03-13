@@ -9,9 +9,11 @@ router.get("/", async (req, res) => {
 
     console.log("GET /tasks called with:", { userId, role, office, numericUserId });
 
+    // Updated query: include raw IDs along with user names for display
     let baseQuery = `
         SELECT tasks.id, tasks.title, tasks.description, tasks.startDate, tasks.endDate, 
-               tasks.status, u1.firstName AS assignedTo, u2.firstName AS createdBy, 
+               tasks.status, tasks.assignedTo, tasks.createdBy,
+               u1.firstName AS assignedToName, u2.firstName AS createdByName, 
                u2.role AS creatorRole, u2.office AS creatorOffice
         FROM tasks
         LEFT JOIN users u1 ON tasks.assignedTo = u1.id
@@ -23,7 +25,7 @@ router.get("/", async (req, res) => {
     if (userId && role) {
         if (role === "Manager") {
             // For Managers: show tasks they created, tasks assigned to them,
-            // AND tasks that belong to employees in the same office (using TRIM to remove extra spaces).
+            // AND tasks that belong to employees in the same office.
             conditions.push(
                 "(tasks.createdBy = ? OR tasks.assignedTo = ? OR " +
                 "(u1.role = 'Employee' AND UPPER(TRIM(u1.office)) = UPPER(TRIM(?))) OR " +

@@ -37,8 +37,7 @@
   };
 
   // Report generation state
-  // reportUserId: selected user for which to generate the report.
-  // Manager can choose "Myself (Manager)" or one of the employees in their office.
+  // Manager can choose themselves or an employee in the same office
   let reportPreviewHtml = "";
   let reportStartDate = "";
   let reportEndDate = "";
@@ -55,7 +54,7 @@
     }
   });
 
-  // Load tasks visible to the manager (server-side filtering based on id, role, and office)
+  // Load tasks visible to the manager (server-side filtering)
   async function loadTasks() {
     try {
       if (!loggedInUser) return;
@@ -85,7 +84,7 @@
     }
   }
 
-  // Assign a new task (manager assigns to an employee in the same office)
+  // Assign a new task
   async function assignTask() {
     if (!loggedInUser) {
       alert("You must be logged in as a Manager.");
@@ -113,7 +112,7 @@
     }
   }
 
-  // Open a task for editing
+  // Edit a task
   async function editTask(taskId) {
     try {
       const res = await fetch(`${API_URL}/tasks/${taskId}`);
@@ -160,7 +159,7 @@
     }
   }
 
-  // Preview report for a selected user (either the manager or an employee) and date range
+  // Preview report (manager or an employee in same office) with date overlap
   async function previewReport() {
     if (!reportUserId || !reportStartDate || !reportEndDate) {
       alert("Please select a user and a date range.");
@@ -174,12 +173,20 @@
       const res = await fetch(url);
       const allTasks = await res.json();
 
-      // Filter tasks where the selected user (reportUserId) is either the creator or the assignee,
-      // and the task's start date falls within the selected range.
-      const filtered = allTasks.filter(task => {
-        return (task.createdBy == reportUserId || task.assignedTo == reportUserId) &&
-               (new Date(task.startDate) >= new Date(reportStartDate) &&
-                new Date(task.startDate) <= new Date(reportEndDate));
+      // Filter by user (creator or assignee) and overlap in date range
+      const filtered = allTasks.filter((task) => {
+        const belongsToUser =
+          task.createdBy == reportUserId || task.assignedTo == reportUserId;
+
+        const taskStart = new Date(task.startDate);
+        const taskEnd = new Date(task.endDate);
+        const filterStart = new Date(reportStartDate);
+        const filterEnd = new Date(reportEndDate);
+
+        // Overlap check
+        const overlaps = (taskStart <= filterEnd) && (taskEnd >= filterStart);
+
+        return belongsToUser && overlaps;
       });
 
       if (filtered.length === 0) {
@@ -208,7 +215,7 @@
     }
   }
 
-  // Download report as PDF using jsPDF
+  // Download PDF
   function downloadReport() {
     if (!window.jspdf || !window.jspdf.jsPDF) {
       alert("PDF generation library not loaded. Please contact your administrator.");
@@ -293,9 +300,9 @@
         <label for="reportUserSelect">Select User:</label>
         <select id="reportUserSelect" bind:value={reportUserId}>
           <option value="" disabled>Select a user</option>
-          <!-- Option for the manager themselves -->
+          <!-- Manager can select themselves -->
           <option value={loggedInUser.id}>Myself (Manager)</option>
-          <!-- List employees in the same office -->
+          <!-- Employees in same office -->
           {#each employees as emp}
             <option value={emp.id}>{emp.firstName} {emp.lastName} ({emp.role})</option>
           {/each}
@@ -337,6 +344,8 @@
         <label for="managerTaskAssignedTo">Assign to:</label>
         <select id="managerTaskAssignedTo" bind:value={newTask.assignedTo} required>
           <option value="" disabled>Select User</option>
+          <!-- New option for assigning to self -->
+          <option value={loggedInUser.id}>Assign to Myself</option>
           {#each employees as emp}
             <option value={emp.id}>{emp.firstName} ({emp.role})</option>
           {/each}
@@ -396,6 +405,7 @@
 </div>
 
 <style>
+  /* (Same CSS as before) */
   :global(body) {
     font-family: Arial, sans-serif;
     background-color: #f4f7f9;
