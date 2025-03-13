@@ -7,7 +7,7 @@
   let employees = [];
   let loggedInUser;
 
-  // New view state: "tasks" (default) or "report"
+  // View state: "tasks" or "report"
   let currentView = "tasks";
 
   // Modals
@@ -15,7 +15,7 @@
   let showEditTaskModal = false;
   let showReportModal = false;
 
-  // Form data for new task
+  // Form data for new task assignment
   let newTask = {
     title: "",
     description: "",
@@ -36,7 +36,9 @@
     assignedTo: ""
   };
 
-  // Report state
+  // Report generation state
+  // reportUserId: selected user for which to generate the report.
+  // Manager can choose "Myself (Manager)" or one of the employees in their office.
   let reportPreviewHtml = "";
   let reportStartDate = "";
   let reportEndDate = "";
@@ -49,10 +51,11 @@
     if (loggedInUser) {
       managerName = `${loggedInUser.firstName} ${loggedInUser.lastName}`;
       loadTasks();
-      loadEmployeesForManager();
+      loadEmployees();
     }
   });
 
+  // Load tasks visible to the manager (server-side filtering based on id, role, and office)
   async function loadTasks() {
     try {
       if (!loggedInUser) return;
@@ -66,20 +69,23 @@
     }
   }
 
-  async function loadEmployeesForManager() {
+  // Load employees in the same office as the manager
+  async function loadEmployees() {
     try {
       if (!loggedInUser) return;
       const res = await fetch(`${API_URL}/users`);
       const allUsers = await res.json();
-      employees = allUsers.filter(u =>
-        u.role === "Employee" &&
-        u.office.trim().toLowerCase() === loggedInUser.office.trim().toLowerCase()
+      employees = allUsers.filter(
+        (u) =>
+          u.role === "Employee" &&
+          u.office.trim().toLowerCase() === loggedInUser.office.trim().toLowerCase()
       );
     } catch (error) {
       console.error("Error loading employees:", error);
     }
   }
 
+  // Assign a new task (manager assigns to an employee in the same office)
   async function assignTask() {
     if (!loggedInUser) {
       alert("You must be logged in as a Manager.");
@@ -107,6 +113,7 @@
     }
   }
 
+  // Open a task for editing
   async function editTask(taskId) {
     try {
       const res = await fetch(`${API_URL}/tasks/${taskId}`);
@@ -126,6 +133,7 @@
     }
   }
 
+  // Update a task
   async function updateTask() {
     try {
       const res = await fetch(`${API_URL}/tasks/${editTaskData.id}`, {
@@ -142,6 +150,7 @@
     }
   }
 
+  // Delete a task
   async function deleteTask(taskId) {
     try {
       await fetch(`${API_URL}/tasks/${taskId}`, { method: "DELETE" });
@@ -151,18 +160,28 @@
     }
   }
 
+  // Preview report for a selected user (either the manager or an employee) and date range
   async function previewReport() {
     if (!reportUserId || !reportStartDate || !reportEndDate) {
       alert("Please select a user and a date range.");
       return;
     }
     try {
-      const res = await fetch(`${API_URL}/tasks?userId=${reportUserId}`);
+      // Fetch tasks visible to the manager
+      const url = `${API_URL}/tasks?userId=${loggedInUser.id}&role=${loggedInUser.role}&office=${encodeURIComponent(
+        loggedInUser.office
+      )}`;
+      const res = await fetch(url);
       const allTasks = await res.json();
+
+      // Filter tasks where the selected user (reportUserId) is either the creator or the assignee,
+      // and the task's start date falls within the selected range.
       const filtered = allTasks.filter(task => {
-        const taskDate = new Date(task.startDate);
-        return taskDate >= new Date(reportStartDate) && taskDate <= new Date(reportEndDate);
+        return (task.createdBy == reportUserId || task.assignedTo == reportUserId) &&
+               (new Date(task.startDate) >= new Date(reportStartDate) &&
+                new Date(task.startDate) <= new Date(reportEndDate));
       });
+
       if (filtered.length === 0) {
         reportPreviewHtml = "<p>No tasks found for the selected criteria.</p>";
       } else {
@@ -189,7 +208,12 @@
     }
   }
 
+  // Download report as PDF using jsPDF
   function downloadReport() {
+    if (!window.jspdf || !window.jspdf.jsPDF) {
+      alert("PDF generation library not loaded. Please contact your administrator.");
+      return;
+    }
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     doc.html(reportPreviewHtml, {
@@ -235,7 +259,7 @@
               <th>Start Date</th>
               <th>End Date</th>
               <th>Status</th>
-              <th>Assigned by</th>
+              <th>Created By</th>
               <th>Assigned To</th>
               <th>Actions</th>
             </tr>
@@ -266,9 +290,27 @@
     {:else if currentView === "report"}
       <section class="report-view">
         <h2>Generate Task Report</h2>
-        <button class="primary-btn" on:click={() => { showReportModal = true; }}>
-          Generate Task Report
-        </button>
+        <label for="reportUserSelect">Select User:</label>
+        <select id="reportUserSelect" bind:value={reportUserId}>
+          <option value="" disabled>Select a user</option>
+          <!-- Option for the manager themselves -->
+          <option value={loggedInUser.id}>Myself (Manager)</option>
+          <!-- List employees in the same office -->
+          {#each employees as emp}
+            <option value={emp.id}>{emp.firstName} {emp.lastName} ({emp.role})</option>
+          {/each}
+        </select>
+        <label for="reportStartDateInput">Start Date:</label>
+        <input id="reportStartDateInput" type="date" bind:value={reportStartDate} />
+        <label for="reportEndDateInput">End Date:</label>
+        <input id="reportEndDateInput" type="date" bind:value={reportEndDate} />
+        <button class="primary-btn" on:click={previewReport}>Preview Report</button>
+        {#if reportPreviewHtml}
+          <div class="report-preview">
+            {@html reportPreviewHtml}
+          </div>
+          <button class="primary-btn" on:click={downloadReport}>Download PDF</button>
+        {/if}
       </section>
     {/if}
   </main>
@@ -324,13 +366,6 @@
           <option value="In Progress">In Progress</option>
           <option value="Completed">Completed</option>
         </select>
-        <label for="editTaskAssignedTo">Assign to:</label>
-        <select id="editTaskAssignedTo" bind:value={editTaskData.assignedTo} required>
-          <option value="" disabled>Select User</option>
-          {#each employees as emp}
-            <option value={emp.id}>{emp.firstName} ({emp.role})</option>
-          {/each}
-        </select>
         <button class="primary-btn" on:click={updateTask}>Save Changes</button>
         <button class="cancel-btn" on:click={() => (showEditTaskModal = false)}>Cancel</button>
       </div>
@@ -341,17 +376,10 @@
     <div class="modal-overlay">
       <div class="modal-content">
         <h2>Task Report</h2>
-        <label for="reportUserSelect">Select User:</label>
-        <select id="reportUserSelect" bind:value={reportUserId}>
-          <option value="" disabled>Select a user</option>
-          {#each employees as emp}
-            <option value={emp.id}>{emp.firstName} {emp.lastName} ({emp.role})</option>
-          {/each}
-        </select>
-        <label for="reportStartDateInput">Start Date:</label>
-        <input id="reportStartDateInput" type="date" bind:value={reportStartDate} />
-        <label for="reportEndDateInput">End Date:</label>
-        <input id="reportEndDateInput" type="date" bind:value={reportEndDate} />
+        <label for="reportStartDateModal">Start Date:</label>
+        <input id="reportStartDateModal" type="date" bind:value={reportStartDate} />
+        <label for="reportEndDateModal">End Date:</label>
+        <input id="reportEndDateModal" type="date" bind:value={reportEndDate} />
         <button class="primary-btn" on:click={previewReport}>Preview Report</button>
         {#if reportPreviewHtml}
           <div class="report-preview">
@@ -393,7 +421,6 @@
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
     z-index: 999;
   }
-
   .nav-btn {
     background-color: #34495e;
     border: none;
@@ -407,7 +434,6 @@
   .nav-btn:hover {
     background-color: #2c3e50;
   }
-
   .logout-btn {
     background-color: #e74c3c;
     border: none;
@@ -434,6 +460,7 @@
     color: #333;
   }
 
+  /* Task Table */
   .admin-table {
     width: 90%;
     margin: 20px auto;
@@ -457,6 +484,7 @@
     background-color: #f2f2f2;
   }
 
+  /* Buttons */
   .primary-btn {
     margin: 5px;
     padding: 10px 16px;
@@ -471,7 +499,6 @@
     background-color: #1f6391;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
-
   .edit-btn,
   .delete-btn {
     margin: 2px;
@@ -498,7 +525,6 @@
     background-color: #c0392b;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
-
   .cancel-btn {
     margin: 5px;
     padding: 10px 16px;
@@ -514,6 +540,7 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
 
+  /* Report Preview */
   .report-preview {
     margin-top: 20px;
     max-height: 300px;
@@ -524,6 +551,7 @@
     border-radius: 6px;
   }
 
+  /* Modal Styling */
   .modal-overlay {
     display: flex;
     position: fixed;
@@ -536,7 +564,6 @@
     justify-content: center;
     z-index: 999;
   }
-
   .modal-content {
     background: #fff;
     width: 90%;
@@ -546,18 +573,15 @@
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
     text-align: left;
   }
-
   .modal-content h2 {
     margin-top: 0;
     color: #333;
   }
-
   .modal-content label {
     display: block;
     margin-top: 10px;
     font-weight: bold;
   }
-
   .modal-content input,
   .modal-content textarea,
   .modal-content select {

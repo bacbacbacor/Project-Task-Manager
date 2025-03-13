@@ -292,20 +292,20 @@
     }
   }
 
+  // Updated previewReport for Admin:
   async function previewReport() {
     if (!reportUserId || !reportStartDate || !reportEndDate) {
       alert("Please select a user and a date range.");
       return;
     }
     try {
-      const res = await fetch(`${API_URL}/tasks?userId=${reportUserId}`);
+      // Fetch all tasks (Admin has access to everything)
+      const res = await fetch(`${API_URL}/tasks`);
       const allTasks = await res.json();
-      const filtered = allTasks.filter((task) => {
-        const taskDate = new Date(task.startDate);
-        return (
-          taskDate >= new Date(reportStartDate) &&
-          taskDate <= new Date(reportEndDate)
-        );
+      // Filter to only include tasks where the selected user is the creator or assignee, then filter by date range.
+      const filtered = allTasks.filter(task => {
+        return (task.createdBy == reportUserId || task.assignedTo == reportUserId) &&
+               (new Date(task.startDate) >= new Date(reportStartDate) && new Date(task.startDate) <= new Date(reportEndDate));
       });
       if (filtered.length === 0) {
         reportPreviewHtml = "<p>No tasks found for the selected criteria.</p>";
@@ -334,6 +334,10 @@
   }
 
   function downloadReport() {
+    if (!window.jspdf || !window.jspdf.jsPDF) {
+      alert("PDF generation library not loaded. Please contact your administrator.");
+      return;
+    }
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     doc.html(reportPreviewHtml, {
@@ -342,7 +346,7 @@
       },
       x: 10,
       y: 10,
-      html2canvas: { scale: 0.295 },
+      html2canvas: { scale: 0.295 }
     });
   }
 
@@ -477,13 +481,9 @@
     {:else if currentView === "report"}
       <!-- Generate Task Report View -->
       <section class="report-view">
-        
         <button id="generateReport"
           class="primary-btn"
-          on:click={() => {
-            showReportModal = true;
-            loadUsersForReport();
-          }}
+          on:click={() => { showReportModal = true; loadUsersForReport(); }}
         >
           Generate Task Report
         </button>
@@ -632,27 +632,27 @@
         <h2>Edit Task</h2>
         <input type="hidden" bind:value={editTaskData.id} />
 
-        <label for="title">Title:</label>
-        <input id="title" type="text" bind:value={editTaskData.title} required />
+        <label for="editTaskTitle">Title:</label>
+        <input id="editTaskTitle" type="text" bind:value={editTaskData.title} required />
 
-        <label for="description">Description:</label>
-        <textarea id="description" bind:value={editTaskData.description} required></textarea>
+        <label for="editTaskDescription">Description:</label>
+        <textarea id="editTaskDescription" bind:value={editTaskData.description} required></textarea>
 
-        <label for="startDate">Start Date:</label>
-        <input id="startDate" type="date" bind:value={editTaskData.startDate} required />
+        <label for="editTaskStartDate">Start Date:</label>
+        <input id="editTaskStartDate" type="date" bind:value={editTaskData.startDate} required />
 
-        <label for="endDate">End Date:</label>
-        <input id="endDate" type="date" bind:value={editTaskData.endDate} required />
+        <label for="editTaskEndDate">End Date:</label>
+        <input id="editTaskEndDate" type="date" bind:value={editTaskData.endDate} required />
 
-        <label for="status">Status:</label>
-        <select id="status" bind:value={editTaskData.status}>
+        <label for="editTaskStatus">Status:</label>
+        <select id="editTaskStatus" bind:value={editTaskData.status}>
           <option value="Pending">Pending</option>
           <option value="In Progress">In Progress</option>
           <option value="Completed">Completed</option>
         </select>
 
-        <label for="assignTo">Assign to:</label>
-        <select id="assignTo" bind:value={editTaskData.assignedTo} required>
+        <label for="editTaskAssignedTo">Assign to:</label>
+        <select id="editTaskAssignedTo" bind:value={editTaskData.assignedTo} required>
           <option value="" disabled>Select User</option>
           {#each users as user (user.id)}
             {#if user.role !== "Admin"}
@@ -798,8 +798,6 @@
     text-align: center;
   }
 
-  
-
   /* Dashboard Cards - Align Horizontally */
   .dashboard-cards {
     display: flex;
@@ -861,7 +859,7 @@
     margin: 5px;
     padding: 10px 16px;
     border: none;
-    border-radius: 6px;
+    border-radius: 10px;
     cursor: pointer;
     background-color: #2980b9;
     color: #fff;
@@ -912,7 +910,18 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
 
-  /* Modals */
+  /* Report Preview */
+  .report-preview {
+    margin-top: 20px;
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    padding: 10px;
+    background: #ecf0f1;
+    border-radius: 6px;
+  }
+
+  /* Modal Styling */
   .modal-overlay {
     display: flex;
     position: fixed;
@@ -968,16 +977,5 @@
     align-items: center;
     justify-content: center;
     white-space: nowrap;
-  }
-
-  /* Report Preview */
-  .report-preview {
-    margin-top: 20px;
-    max-height: 300px;
-    overflow-y: auto;
-    border: 1px solid #ddd;
-    padding: 10px;
-    background: #ecf0f1;
-    border-radius: 6px;
   }
 </style>

@@ -1,3 +1,4 @@
+<!-- Employee.svelte -->
 <script>
   import { onMount } from "svelte";
 
@@ -164,6 +165,7 @@
             <td>${new Date(task.startDate).toLocaleDateString()}</td>
             <td>${new Date(task.endDate).toLocaleDateString()}</td>
             <td>${task.status}</td>
+            
           </tr>`;
         });
         html += "</table>";
@@ -222,6 +224,8 @@
               <th>Start Date</th>
               <th>End Date</th>
               <th>Status</th>
+              <th>Assigned by</th>
+              <th>Assigned To</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -236,6 +240,8 @@
                   <td>{new Date(task.startDate).toLocaleDateString()}</td>
                   <td>{new Date(task.endDate).toLocaleDateString()}</td>
                   <td>{task.status}</td>
+                  <td>{task.createdBy || "Unknown"}</td>
+                  <td>{task.assignedTo || "Unknown"}</td>
                   <td>
                     <button class="edit-btn" on:click={() => editTask(task.id)}>✏️ Edit</button>
                     <button class="delete-btn" on:click={() => deleteTask(task.id)}>🗑 Delete</button>

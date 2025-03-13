@@ -23,11 +23,14 @@ router.get("/", async (req, res) => {
     if (userId && role) {
         if (role === "Manager") {
             // For Managers: show tasks they created, tasks assigned to them,
-            // and tasks assigned to employees in the same office.
+            // AND tasks that belong to employees in the same office (using TRIM to remove extra spaces).
             conditions.push(
-                "(tasks.createdBy = ? OR tasks.assignedTo = ? OR (u1.role = 'Employee' AND UPPER(u1.office) = UPPER(?)))"
+                "(tasks.createdBy = ? OR tasks.assignedTo = ? OR " +
+                "(u1.role = 'Employee' AND UPPER(TRIM(u1.office)) = UPPER(TRIM(?))) OR " +
+                "(u2.role = 'Employee' AND UPPER(TRIM(u2.office)) = UPPER(TRIM(?)))" +
+                ")"
             );
-            queryParams.push(numericUserId, numericUserId, office.trim());
+            queryParams.push(numericUserId, numericUserId, office, office);
         } else if (role === "Employee") {
             // For Employees: show tasks where they are either the creator or the assignee.
             conditions.push("(tasks.createdBy = ? OR tasks.assignedTo = ?)");
@@ -35,7 +38,6 @@ router.get("/", async (req, res) => {
         }
     }
 
-    
     if (conditions.length > 0) {
         baseQuery += " WHERE " + conditions.join(" AND ");
     }
@@ -44,15 +46,14 @@ router.get("/", async (req, res) => {
     console.log("With Parameters:", queryParams);
 
     try {
-        const [tasks] = await pool.query(baseQuery, queryParams);
-        console.log("Tasks Retrieved:", tasks);
-        res.json(tasks);
+        const [rows] = await pool.query(baseQuery, queryParams);
+        console.log("Tasks Retrieved:", rows);
+        res.json(rows);
     } catch (error) {
         console.error("❌ Error fetching tasks from MySQL:", error);
         res.status(500).json({ message: "Server error while fetching tasks." });
     }
-}); 
-
+});
 
 // POST: Create a new task (Managers can only assign to employees in the same office)
 router.post("/", async (req, res) => {
