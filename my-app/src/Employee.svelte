@@ -1,3 +1,4 @@
+<!-- Employee.svelte -->
 <script>
   import { onMount } from "svelte";
 
@@ -51,15 +52,16 @@
 
   // Load tasks for the logged-in employee
   async function loadTasks() {
-    try {
-      // Pass the userId and role so the back end filters correctly for employees
-      const res = await fetch(`${API_URL}/tasks?userId=${loggedInUser.id}&role=${loggedInUser.role}`);
-      const filteredTasks = await res.json();
-      tasks = filteredTasks;
-    } catch (error) {
-      console.error("Error loading tasks:", error);
-    }
+  try {
+    const res = await fetch(`${API_URL}/tasks`);
+    const allTasks = await res.json();
+    // Filter tasks so that only tasks assigned to the logged-in user are kept
+    tasks = allTasks.filter(task => task.assignedTo === loggedInUser.id);
+  } catch (error) {
+    console.error("Error loading tasks:", error);
   }
+}
+
 
   // Add a new task (self-managed for employee)
   async function addTask() {
@@ -141,8 +143,7 @@
       return;
     }
     try {
-      // Use the same filtering by passing the userId and role
-      const res = await fetch(`${API_URL}/tasks?userId=${loggedInUser.id}&role=${loggedInUser.role}`);
+      const res = await fetch(`${API_URL}/tasks?userId=${loggedInUser.id}`);
       const allTasks = await res.json();
       const filtered = allTasks.filter(task => {
         const taskDate = new Date(task.startDate);

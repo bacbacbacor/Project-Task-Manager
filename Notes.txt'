@@ -1,11 +1,1 @@
-How does this code works?
-Admin can view,edit,delete all tasks of the managers and employees 
-Admin can view,edit,delete all the managers and employees
-Admin can generate all the tasks of the managers and employees and can download it as a PDF
-Admin can assign tasks to managers and employees
-
-Managers can add, view, edit and delete their own tasks and managers can add, view, edit and delete the tasks of employees if they have the same office
-Managers can generate their own tasks by selecting a date range, managers can also generate the tasks by selecting a data range of the employees if they have the same office and the managers can also download it as a PDF
-
-Employees can only add view edit and delete their own tasks
-Employees can only generate and download their tasks by selecting a date range.
+bug: 
