@@ -1,8 +1,6 @@
 <!-- Admin.svelte -->
 <script>
   import { onMount } from "svelte";
-
-  // State variables
   let adminName = "";
   let totalUsers = 0;
   let totalManagers = 0;
@@ -10,18 +8,12 @@
   let users = [];
   let tasks = [];
   let offices = [];
-
-  // View State: "tasks", "userManagement", or "report"
   let currentView = "tasks";
-
-  // Modal controls
   let showUserModal = false;
   let showEditUserModal = false;
   let showAssignTaskModal = false;
   let showEditTaskModal = false;
   let showReportModal = false;
-
-  // Form data for new user
   let newUser = {
     role: "",
     office: "",
@@ -31,8 +23,6 @@
     address: "",
     birthday: "",
   };
-
-  // Form data for editing user
   let editUserData = {
     id: null,
     firstName: "",
@@ -43,8 +33,6 @@
     address: "",
     birthday: "",
   };
-
-  // Form data for new task assignment
   let newTask = {
     title: "",
     description: "",
@@ -54,8 +42,6 @@
     assignedTo: "",
     createdBy: "",
   };
-
-  // Form data for editing task
   let editTaskData = {
     id: null,
     title: "",
@@ -65,14 +51,10 @@
     status: "",
     assignedTo: "",
   };
-
-  // Report generation variables
   let reportUserId = "";
   let reportStartDate = "";
   let reportEndDate = "";
   let reportPreviewHtml = "";
-
-  // New variables for filtering report: select manager then employee
   let selectedManager = "";
   let filteredEmployees = [];
 
@@ -131,6 +113,7 @@
       console.log("User added:", data);
       await loadUsers();
       showUserModal = false;
+
       // Reset form
       newUser = {
         role: "",
@@ -221,6 +204,7 @@
       console.log("Task assigned:", data);
       await loadTasks();
       showAssignTaskModal = false;
+
       // Reset form
       newTask = {
         title: "",
@@ -283,11 +267,12 @@
   // ---------------------
   // Report Generation
   // ---------------------
-  // Filter employees based on selected manager's office
   function filterEmployees() {
-    const manager = users.find(u => u.id == selectedManager);
+    const manager = users.find((u) => u.id == selectedManager);
     if (manager) {
-      filteredEmployees = users.filter(u => u.role === "Employee" && u.office === manager.office);
+      filteredEmployees = users.filter(
+        (u) => u.role === "Employee" && u.office === manager.office,
+      );
     } else {
       filteredEmployees = [];
     }
@@ -299,11 +284,8 @@
       return;
     }
     try {
-      // Fetch all tasks (Admin has access to everything)
       const res = await fetch(`${API_URL}/tasks`);
       const allTasks = await res.json();
-
-      // Filter: user is creator or assignee, and date range overlaps
       const filtered = allTasks.filter((task) => {
         const belongsToUser =
           task.createdBy == reportUserId || task.assignedTo == reportUserId;
@@ -312,10 +294,7 @@
         const taskEnd = new Date(task.endDate);
         const filterStart = new Date(reportStartDate);
         const filterEnd = new Date(reportEndDate);
-
-        // Overlap if taskStart <= filterEnd AND taskEnd >= filterStart
-        const overlaps =
-          taskStart <= filterEnd && taskEnd >= filterStart;
+        const overlaps = taskStart <= filterEnd && taskEnd >= filterStart;
 
         return belongsToUser && overlaps;
       });
@@ -348,7 +327,9 @@
 
   function downloadReport() {
     if (!window.jspdf || !window.jspdf.jsPDF) {
-      alert("PDF generation library not loaded. Please contact your administrator.");
+      alert(
+        "PDF generation library not loaded. Please contact your administrator.",
+      );
       return;
     }
     const { jsPDF } = window.jspdf;
@@ -359,7 +340,7 @@
       },
       x: 10,
       y: 10,
-      html2canvas: { scale: 0.295 }
+      html2canvas: { scale: 0.295 },
     });
   }
 
@@ -378,7 +359,6 @@
 <div class="admin-container">
   <aside class="side-panel">
     <h1>Admin Dashboard</h1>
-    <!-- Navigation Buttons -->
     <button class="nav-btn" on:click={() => setView("tasks")}>
       View All Tasks
     </button>
@@ -394,116 +374,175 @@
   <main>
     {#if currentView === "tasks"}
       <!-- Tasks View -->
-      <section class="task-section">
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Title</th>
-              <th>Description</th>
-              <th>Start Date</th>
-              <th>End Date</th>
-              <th>Status</th>
-              <th>Assigned To</th>
-              <th>Created By</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {#each tasks as task}
-              <tr>
-                <td>{task.id}</td>
-                <td>{task.title}</td>
-                <td>{task.description}</td>
-                <td>{new Date(task.startDate).toLocaleDateString()}</td>
-                <td>{new Date(task.endDate).toLocaleDateString()}</td>
-                <td>{task.status}</td>
-                <td>{task.assignedTo || "Unassigned"}</td>
-                <td>{task.createdBy}</td>
-                <td>
-                  <div class="action-buttons">
-                    <button class="edit-btn" on:click={() => editTask(task.id)}>
-                      ✏️ Edit
-                    </button>
-                    <button class="delete-btn" on:click={() => deleteTask(task.id)}>
-                      🗑 Delete
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            {/each}
-          </tbody>
-        </table>
-
-        <button class="primary-btn" on:click={() => (showAssignTaskModal = true)}>
-          ➕ Assign Task
-        </button>
-      </section>
+      <div class="TaskContainer">
+        <div class="buttonContainer">
+          <button class="primary-btn" on:click={() => (showAssignTaskModal = true)}>
+            ➕ Assign Task
+          </button>
+        </div>
+        <div class="sectionContainer">
+          <section class="task-section">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Title</th>
+                  <th>Description</th>
+                  <th>Start Date</th>
+                  <th>End Date</th>
+                  <th>Status</th>
+                  <th>Assigned To</th>
+                  <th>Created By</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {#each tasks as task}
+                  <tr>
+                    <td>{task.id}</td>
+                    <td>{task.title}</td>
+                    <td>{task.description}</td>
+                    <td>{new Date(task.startDate).toLocaleDateString()}</td>
+                    <td>{new Date(task.endDate).toLocaleDateString()}</td>
+                    <td>{task.status}</td>
+                    <td>{task.assignedTo || "Unassigned"}</td>
+                    <td>{task.createdBy}</td>
+                    <td>
+                      <div class="action-buttons">
+                        <button
+                          class="edit-btn"
+                          on:click={() => editTask(task.id)}
+                        >
+                          ✏️ Edit
+                        </button>
+                        <button
+                          class="delete-btn"
+                          on:click={() => deleteTask(task.id)}
+                        >
+                          🗑 Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                {/each}
+              </tbody>
+            </table>
+          </section>
+        </div>
+      </div>
     {:else if currentView === "userManagement"}
       <!-- User Management View -->
-      <section class="user-management">
-        <section class="dashboard-cards">
-          <div class="card">
-            <h3>Total Users</h3>
-            <p>{totalUsers}</p>
-          </div>
-          <div class="card">
-            <h3>Managers</h3>
-            <p>{totalManagers}</p>
-          </div>
-          <div class="card">
-            <h3>Employees</h3>
-            <p>{totalEmployees}</p>
-          </div>
-        </section>
-        <button class="primary-btn" on:click={() => (showUserModal = true)}>
-          ➕ Add User
-        </button>
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Name</th>
-              <th>Role</th>
-              <th>Office</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {#each users as user}
-              <tr>
-                <td>{user.id}</td>
-                <td>{user.firstName} {user.lastName}</td>
-                <td>{user.role}</td>
-                <td>{user.office || "N/A"}</td>
-                <td>
-                  <div class="action-buttons">
-                    <button class="edit-btn" on:click={() => editUser(user.id)}>
-                      ✏️ Edit
-                    </button>
-                    <button class="delete-btn" on:click={() => deleteUser(user.id)}>
-                      🗑 Delete
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            {/each}
-          </tbody>
-        </table>
-      </section>
+      <div class="manageContainer">
+        <div class="buttonContainer">
+          <button class="userManagementbtn" on:click={() => (showUserModal = true)}>
+            ➕ Add User
+          </button>
+        </div>
+        <div>
+          <section class="user-management">
+            <section class="dashboard-cards">
+              <div class="card">
+                <h3>Total Users</h3>
+                <p>{totalUsers}</p>
+              </div>
+              <div class="card">
+                <h3>Managers</h3>
+                <p>{totalManagers}</p>
+              </div>
+              <div class="card">
+                <h3>Employees</h3>
+                <p>{totalEmployees}</p>
+              </div>
+            </section>
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>Role</th>
+                  <th>Office</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {#each users as user}
+                  <tr>
+                    <td>{user.id}</td>
+                    <td>{user.firstName} {user.lastName}</td>
+                    <td>{user.role}</td>
+                    <td>{user.office || "N/A"}</td>
+                    <td>
+                      <div class="action-buttons">
+                        <button
+                          class="edit-btn" on:click={() => editUser(user.id)} >
+                          ✏️ Edit
+                        </button>
+                        <button class="delete-btn" on:click={() => deleteUser(user.id)} >
+                          🗑 Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                {/each}
+              </tbody>
+            </table>
+          </section>
+        </div>
+      </div>
     {:else if currentView === "report"}
       <!-- Generate Task Report View -->
       <section class="report-view">
-        <button id="generateReport"
-          class="primary-btn"
-          on:click={() => { showReportModal = true; }}
-        >
-          Generate Task Report
-        </button>
+        <div class="report-card">
+          <h2>Task Report</h2>
+          <div class="report-filters">
+            <div class="filter-group">
+              <label for="managerSelect">Select Manager:</label>
+              <select id="managerSelect" bind:value={selectedManager} on:change={filterEmployees}>
+                <option value="" disabled>Select Manager</option>
+                {#each users as user (user.id)}
+                  {#if user.role === "Manager"}
+                    <option value={user.id}>{user.firstName} {user.lastName}</option>
+                  {/if}
+                {/each}
+              </select>
+            </div>
+            {#if selectedManager}
+              <div class="filter-group">
+                <label for="employeeSelect">Select Employee:</label>
+                <select id="employeeSelect" bind:value={reportUserId}>
+                  <option value="" disabled>Select Employee</option>
+                  {#each filteredEmployees as emp (emp.id)}
+                    <option value={emp.id}
+                      >{emp.firstName} {emp.lastName}</option
+                    >
+                  {/each}
+                </select>
+              </div>
+            {/if}
+            <div class="filter-group">
+              <label for="startDate">Start Date:</label>
+              <input id="startDate" type="date" bind:value={reportStartDate} />
+            </div>
+            <div class="filter-group">
+              <label for="endDate">End Date:</label>
+              <input id="endDate" type="date" bind:value={reportEndDate} />
+            </div>
+          </div>
+          <div class="report-actions">
+            <button class="primary-btn" on:click={previewReport}>Preview Report</button>
+          </div>
+          {#if reportPreviewHtml}
+            <div class="report-preview">
+              {@html reportPreviewHtml}
+            </div>
+            <div class="report-actions">
+              <button class="primary-btn" on:click={downloadReport}>Download PDF</button>
+            </div>
+          {/if}
+        </div>
       </section>
     {/if}
   </main>
-
   <!-- Modals -->
   {#if showUserModal}
     <div class="modal-overlay">
@@ -515,7 +554,6 @@
           <option value="Manager">Manager</option>
           <option value="Employee">Employee</option>
         </select>
-
         {#if newUser.role}
           <label for="selectOffice">Select Office:</label>
           <select bind:value={newUser.office}>
@@ -524,22 +562,16 @@
               <option value={office.officeName}>{office.officeName}</option>
             {/each}
           </select>
-
           <label for="fName">First Name:</label>
           <input id="fName" type="text" bind:value={newUser.firstName} />
-
           <label for="lName">Last Name:</label>
           <input id="lName" type="text" bind:value={newUser.lastName} />
-
           <label for="phoneNum">Phone Number:</label>
           <input id="phoneNum" type="text" bind:value={newUser.number} />
-
           <label for="address">Address:</label>
           <input id="address" type="text" bind:value={newUser.address} />
-
           <label for="birthday">Birthday:</label>
           <input id="birthday" type="date" bind:value={newUser.birthday} />
-
           <div class="modal-actions">
             <button class="primary-btn" on:click={addUser}>Save User</button>
             <button class="cancel-btn" on:click={() => (showUserModal = false)}>
@@ -556,35 +588,27 @@
       <div class="modal-content">
         <h2>Edit User</h2>
         <input type="hidden" bind:value={editUserData.id} />
-
         <label for="fName">First Name:</label>
         <input id="fName" type="text" bind:value={editUserData.firstName} />
-
         <label for="lName">Last Name:</label>
         <input id="lName" type="text" bind:value={editUserData.lastName} />
-
         <label for="role">Role:</label>
         <select id="role" bind:value={editUserData.role}>
           <option value="Manager">Manager</option>
           <option value="Employee">Employee</option>
         </select>
-
         <label for="office">Office:</label>
         <select id="office" bind:value={editUserData.office}>
           {#each offices as office}
             <option value={office.officeName}>{office.officeName}</option>
           {/each}
         </select>
-
         <label for="phoneNum">Phone Number:</label>
         <input id="phoneNum" type="text" bind:value={editUserData.number} />
-
         <label for="address">Address:</label>
         <input id="address" type="text" bind:value={editUserData.address} />
-
         <label for="birthday">Birthday:</label>
         <input id="birthday" type="date" bind:value={editUserData.birthday} />
-
         <div class="modal-actions">
           <button class="primary-btn" on:click={updateUser}>Save Changes</button>
           <button class="cancel-btn" on:click={() => (showEditUserModal = false)}>
@@ -605,20 +629,16 @@
 
         <label for="description">Description:</label>
         <textarea id="description" bind:value={newTask.description} required></textarea>
-
         <label for="startDate">Start Date:</label>
-        <input id="startDate" type="date" bind:value={newTask.startDate} required />
-
+        <input id="startDate" type="date" bind:value={newTask.startDate} required/>
         <label for="endDate">End Date:</label>
         <input id="endDate" type="date" bind:value={newTask.endDate} required />
-
         <label for="status">Status:</label>
         <select id="status" bind:value={newTask.status}>
           <option value="Pending">Pending</option>
           <option value="In Progress">In Progress</option>
           <option value="Completed">Completed</option>
         </select>
-
         <label for="assignTo">Assign to:</label>
         <select id="assignTo" bind:value={newTask.assignedTo} required>
           <option value="" disabled>Select User</option>
@@ -631,7 +651,10 @@
 
         <div class="modal-actions">
           <button class="primary-btn" on:click={assignTask}>Assign Task</button>
-          <button class="cancel-btn" on:click={() => (showAssignTaskModal = false)}>
+          <button
+            class="cancel-btn"
+            on:click={() => (showAssignTaskModal = false)}
+          >
             Cancel
           </button>
         </div>
@@ -644,19 +667,14 @@
       <div class="modal-content">
         <h2>Edit Task</h2>
         <input type="hidden" bind:value={editTaskData.id} />
-
         <label for="editTaskTitle">Title:</label>
-        <input id="editTaskTitle" type="text" bind:value={editTaskData.title} required />
-
+        <input id="editTaskTitle" type="text" bind:value={editTaskData.title} required/>
         <label for="editTaskDescription">Description:</label>
-        <textarea id="editTaskDescription" bind:value={editTaskData.description} required></textarea>
-
+        <textarea id="editTaskDescription" bind:value={editTaskData.description} required ></textarea>
         <label for="editTaskStartDate">Start Date:</label>
         <input id="editTaskStartDate" type="date" bind:value={editTaskData.startDate} required />
-
         <label for="editTaskEndDate">End Date:</label>
         <input id="editTaskEndDate" type="date" bind:value={editTaskData.endDate} required />
-
         <label for="editTaskStatus">Status:</label>
         <select id="editTaskStatus" bind:value={editTaskData.status}>
           <option value="Pending">Pending</option>
@@ -665,7 +683,7 @@
         </select>
 
         <label for="editTaskAssignedTo">Assign to:</label>
-        <select id="editTaskAssignedTo" bind:value={editTaskData.assignedTo} required>
+        <select id="editTaskAssignedTo" bind:value={editTaskData.assignedTo} required >
           <option value="" disabled>Select User</option>
           {#each users as user (user.id)}
             {#if user.role !== "Admin"}
@@ -673,61 +691,10 @@
             {/if}
           {/each}
         </select>
-
         <div class="modal-actions">
           <button class="primary-btn" on:click={updateTask}>Save Changes</button>
-          <button class="cancel-btn" on:click={() => (showEditTaskModal = false)}>
+          <button class="cancel-btn"on:click={() => (showEditTaskModal = false)}>
             Cancel
-          </button>
-        </div>
-      </div>
-    </div>
-  {/if}
-
-  {#if showReportModal}
-    <div class="modal-overlay">
-      <div class="modal-content">
-        <h2>Task Report</h2>
-
-        <!-- New Report Modal: First select a Manager, then filter employees -->
-        <label for="managerSelect">Select Manager:</label>
-        <select id="managerSelect" bind:value={selectedManager} on:change={filterEmployees}>
-          <option value="" disabled selected>Select Manager</option>
-          {#each users as user (user.id)}
-            {#if user.role === "Manager"}
-              <option value={user.id}>{user.firstName} {user.lastName}</option>
-            {/if}
-          {/each}
-        </select>
-
-        {#if selectedManager}
-          <label for="employeeSelect">Select Employee:</label>
-          <select id="employeeSelect" bind:value={reportUserId}>
-            <option value="" disabled selected>Select Employee</option>
-            {#each filteredEmployees as emp (emp.id)}
-              <option value={emp.id}>{emp.firstName} {emp.lastName}</option>
-            {/each}
-          </select>
-        {/if}
-
-        <label for="startDate">Start Date:</label>
-        <input id="startDate" type="date" bind:value={reportStartDate} />
-
-        <label for="endDate">End Date:</label>
-        <input id="endDate" type="date" bind:value={reportEndDate} />
-
-        <button class="primary-btn" on:click={previewReport}>Preview Report</button>
-
-        {#if reportPreviewHtml}
-          <div class="report-preview">
-            {@html reportPreviewHtml}
-          </div>
-          <button class="primary-btn" on:click={downloadReport}>Download PDF</button>
-        {/if}
-
-        <div class="modal-actions">
-          <button class="cancel-btn" on:click={() => { showReportModal = false; reportPreviewHtml = ""; }}>
-            Close
           </button>
         </div>
       </div>
@@ -736,15 +703,12 @@
 </div>
 
 <style>
-  /* (Same CSS as before) */
-  /* Root Container */
   .admin-container {
     font-family: Arial, sans-serif;
     background-color: #f4f7f9;
     min-height: 100vh;
   }
-
-  /* Side Panel */
+  
   .side-panel {
     position: fixed;
     top: 0;
@@ -761,6 +725,7 @@
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
     z-index: 999;
   }
+
   .nav-btn {
     background-color: #34495e;
     border: none;
@@ -769,12 +734,16 @@
     cursor: pointer;
     color: #ecf0f1;
     font-size: 14px;
-    transition: background-color 0.2s, box-shadow 0.2s;
+    transition:
+      background-color 0.2s,
+      box-shadow 0.2s;
   }
+
   .nav-btn:hover {
     background-color: #2c3e50;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
+
   .logout-btn {
     background-color: #e74c3c;
     border: none;
@@ -785,6 +754,7 @@
     font-size: 14px;
     transition: background-color 0.2s, box-shadow 0.2s;
   }
+
   .logout-btn:hover {
     background-color: #c0392b;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -799,10 +769,66 @@
     box-sizing: border-box;
   }
 
-  /* Report View */
+  /* Generate Task Report View enhancements */
   .report-view {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: -20%;
+    padding: 20% 50%;
+    background-color: red;
+    width:100%;
+  }
+
+  .report-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 100px;
+    height: 70%;
+    width: 150%;
+  }
+
+  .report-card h2 {
     text-align: center;
-    margin-top: 60px;
+    margin-bottom: 20px;
+    color: #333;
+  }
+
+  .report-filters {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .filter-group label {
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #333;
+  }
+
+  .report-actions {
+    margin-top: 20%;
+    text-align: center;
+    background-color: red;
+    width: 100%;
+    height: 150%;
+  }
+
+  .report-preview {
+    margin-top: 20px;
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    padding: 15px;
+    background: #f9f9f9;
+    border-radius: 8px;
   }
 
   /* User Management */
@@ -813,13 +839,14 @@
 
   /* Dashboard Cards */
   .dashboard-cards {
+    margin-bottom: 50px;
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 20px;
-    margin: 20px auto;
     flex-wrap: nowrap;
   }
+
   .card {
     background: #fff;
     padding: 20px;
@@ -829,14 +856,17 @@
     text-align: center;
     transition: transform 0.2s, box-shadow 0.2s;
   }
+
   .card:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
   }
+
   .card h3 {
     margin: 0 0 10px;
     color: #333;
   }
+
   .card p {
     font-size: 1.5rem;
     font-weight: bold;
@@ -853,35 +883,43 @@
     overflow: hidden;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   }
+
   .admin-table th,
   .admin-table td {
     border: 1px solid #ddd;
     padding: 10px;
     text-align: center;
   }
+
   .admin-table th {
     background-color: #2980b9;
     color: #fff;
   }
+
   .admin-table tr:hover {
     background-color: #f2f2f2;
   }
 
   /* Buttons */
-  .primary-btn {
-    margin: 5px;
+  .primary-btn, .userManagementbtn {
+    margin-top: -10%;
     padding: 10px 16px;
     border: none;
-    border-radius: 10px;
+    height: 15%;
+    width: 20%;
+    border-radius: 12px;
     cursor: pointer;
     background-color: #2980b9;
     color: #fff;
-    transition: background-color 0.2s, box-shadow 0.2s;
+    transition:
+      background-color 0.2s,
+      box-shadow 0.2s;
   }
-  .primary-btn:hover {
+  .primary-btn:hover, .userManagementbtn:hover {
     background-color: #1f6391;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
+
   .edit-btn,
   .delete-btn {
     margin: 2px;
@@ -890,24 +928,31 @@
     border-radius: 4px;
     cursor: pointer;
     font-size: 14px;
-    transition: background-color 0.2s, box-shadow 0.2s;
+    transition:
+      background-color 0.2s,
+      box-shadow 0.2s;
   }
+
   .edit-btn {
     background-color: #f39c12;
     color: #fff;
   }
+
   .edit-btn:hover {
     background-color: #d68910;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
+
   .delete-btn {
     background-color: #e74c3c;
     color: #fff;
   }
+
   .delete-btn:hover {
     background-color: #c0392b;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
+
   .cancel-btn {
     margin: 5px;
     padding: 10px 16px;
@@ -916,25 +961,16 @@
     cursor: pointer;
     background-color: #bdc3c7;
     color: #333;
-    transition: background-color 0.2s, box-shadow 0.2s;
+    transition:
+      background-color 0.2s,
+      box-shadow 0.2s;
   }
+
   .cancel-btn:hover {
     background-color: #95a5a6;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
 
-  /* Report Preview */
-  .report-preview {
-    margin-top: 20px;
-    max-height: 300px;
-    overflow-y: auto;
-    border: 1px solid #ddd;
-    padding: 10px;
-    background: #ecf0f1;
-    border-radius: 6px;
-  }
-
-  /* Modal Styling */
   .modal-overlay {
     display: flex;
     position: fixed;
@@ -991,4 +1027,23 @@
     justify-content: center;
     white-space: nowrap;
   }
+
+  .TaskContainer {
+    margin-top: 30%;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .buttonContainer {
+    padding-bottom: 5%;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+  }
+
+  .userManagementbtn{
+    margin-bottom: -15%;
+  }
+
+  
 </style>
