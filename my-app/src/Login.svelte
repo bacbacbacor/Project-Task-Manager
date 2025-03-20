@@ -8,7 +8,7 @@
   let errorMessage = "";
 
   async function login() {
-    errorMessage = "";
+    errorMessage = "";  
     try {
       const response = await fetch("http://localhost:3000/auth/login", {
         method: "POST",
@@ -79,7 +79,6 @@
 </div>
 
 <style>
-  /* Global styles to match the admin UI design */
   :global(body) {
     margin: 0;
     padding: 0;
@@ -121,6 +120,8 @@
     font-size: 16px;
     transition: border-color 0.2s;
   }
+
+  
 
   .login-container input:focus {
     border-color: #2980b9;

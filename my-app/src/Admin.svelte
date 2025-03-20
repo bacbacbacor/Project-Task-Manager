@@ -271,7 +271,7 @@
     const manager = users.find((u) => u.id == selectedManager);
     if (manager) {
       filteredEmployees = users.filter(
-        (u) => u.role === "Employee" && u.office === manager.office,
+        (u) => u.role === "Employee" && u.office === manager.office
       );
     } else {
       filteredEmployees = [];
@@ -300,7 +300,8 @@
       });
 
       if (filtered.length === 0) {
-        reportPreviewHtml = "<p>No tasks found for the selected criteria.</p>";
+        reportPreviewHtml =
+          "<p>No tasks found for the selected criteria.</p>";
       } else {
         let html = `<table border='1' style='width:100%; border-collapse: collapse;'>
             <tr>
@@ -328,7 +329,7 @@
   function downloadReport() {
     if (!window.jspdf || !window.jspdf.jsPDF) {
       alert(
-        "PDF generation library not loaded. Please contact your administrator.",
+        "PDF generation library not loaded. Please contact your administrator."
       );
       return;
     }
@@ -375,7 +376,7 @@
     {#if currentView === "tasks"}
       <!-- Tasks View -->
       <div class="TaskContainer">
-        <div class="buttonContainer">
+        <div class="buttonContainer-assign">
           <button class="primary-btn" on:click={() => (showAssignTaskModal = true)}>
             ➕ Assign Task
           </button>
@@ -409,16 +410,10 @@
                     <td>{task.createdBy}</td>
                     <td>
                       <div class="action-buttons">
-                        <button
-                          class="edit-btn"
-                          on:click={() => editTask(task.id)}
-                        >
+                        <button class="edit-btn" on:click={() => editTask(task.id)}>
                           ✏️ Edit
                         </button>
-                        <button
-                          class="delete-btn"
-                          on:click={() => deleteTask(task.id)}
-                        >
+                        <button class="delete-btn" on:click={() => deleteTask(task.id)}>
                           🗑 Delete
                         </button>
                       </div>
@@ -433,7 +428,7 @@
     {:else if currentView === "userManagement"}
       <!-- User Management View -->
       <div class="manageContainer">
-        <div class="buttonContainer">
+        <div class="buttonContainer-add">
           <button class="userManagementbtn" on:click={() => (showUserModal = true)}>
             ➕ Add User
           </button>
@@ -441,17 +436,19 @@
         <div>
           <section class="user-management">
             <section class="dashboard-cards">
-              <div class="card">
-                <h3>Total Users</h3>
-                <p>{totalUsers}</p>
-              </div>
-              <div class="card">
-                <h3>Managers</h3>
-                <p>{totalManagers}</p>
-              </div>
-              <div class="card">
-                <h3>Employees</h3>
-                <p>{totalEmployees}</p>
+              <div class="card-containter">
+                <div class="card">
+                  <h3>Total Users</h3>
+                  <p>{totalUsers}</p>
+                </div>
+                <div class="card">
+                  <h3>Managers</h3>
+                  <p>{totalManagers}</p>
+                </div>
+                <div class="card">
+                  <h3>Employees</h3>
+                  <p>{totalEmployees}</p>
+                </div>
               </div>
             </section>
             <table class="admin-table">
@@ -473,11 +470,10 @@
                     <td>{user.office || "N/A"}</td>
                     <td>
                       <div class="action-buttons">
-                        <button
-                          class="edit-btn" on:click={() => editUser(user.id)} >
+                        <button class="edit-btn" on:click={() => editUser(user.id)}>
                           ✏️ Edit
                         </button>
-                        <button class="delete-btn" on:click={() => deleteUser(user.id)} >
+                        <button class="delete-btn" on:click={() => deleteUser(user.id)}>
                           🗑 Delete
                         </button>
                       </div>
@@ -498,7 +494,7 @@
             <div class="filter-group">
               <label for="managerSelect">Select Manager:</label>
               <select id="managerSelect" bind:value={selectedManager} on:change={filterEmployees}>
-                <option value="" disabled>Select Manager</option>
+                <option value="" disabled selected>Select Manager</option>
                 {#each users as user (user.id)}
                   {#if user.role === "Manager"}
                     <option value={user.id}>{user.firstName} {user.lastName}</option>
@@ -510,11 +506,9 @@
               <div class="filter-group">
                 <label for="employeeSelect">Select Employee:</label>
                 <select id="employeeSelect" bind:value={reportUserId}>
-                  <option value="" disabled>Select Employee</option>
+                  <option value="" disabled selected>Select Employee</option>
                   {#each filteredEmployees as emp (emp.id)}
-                    <option value={emp.id}
-                      >{emp.firstName} {emp.lastName}</option
-                    >
+                    <option value={emp.id}>{emp.firstName} {emp.lastName}</option>
                   {/each}
                 </select>
               </div>
@@ -550,14 +544,14 @@
         <h2>Add New User</h2>
         <label for="selectRole">Select Role:</label>
         <select bind:value={newUser.role}>
-          <option value="" disabled>Select Role</option>
+          <option value="" disabled selected>Select Role</option>
           <option value="Manager">Manager</option>
           <option value="Employee">Employee</option>
         </select>
         {#if newUser.role}
           <label for="selectOffice">Select Office:</label>
           <select bind:value={newUser.office}>
-            <option value="" disabled>Select Office</option>
+            <option value="" disabled selected>Select Office</option>
             {#each offices as office}
               <option value={office.officeName}>{office.officeName}</option>
             {/each}
@@ -623,10 +617,8 @@
     <div class="modal-overlay">
       <div class="modal-content">
         <h2>Assign a Task</h2>
-
         <label for="title">Title:</label>
         <input id="title" type="text" bind:value={newTask.title} required />
-
         <label for="description">Description:</label>
         <textarea id="description" bind:value={newTask.description} required></textarea>
         <label for="startDate">Start Date:</label>
@@ -641,20 +633,16 @@
         </select>
         <label for="assignTo">Assign to:</label>
         <select id="assignTo" bind:value={newTask.assignedTo} required>
-          <option value="" disabled>Select User</option>
+          <option value="" disabled selected>Select User</option>
           {#each users as user (user.id)}
             {#if user.role !== "Admin"}
               <option value={user.id}>{user.firstName} ({user.role})</option>
             {/if}
           {/each}
         </select>
-
         <div class="modal-actions">
           <button class="primary-btn" on:click={assignTask}>Assign Task</button>
-          <button
-            class="cancel-btn"
-            on:click={() => (showAssignTaskModal = false)}
-          >
+          <button class="cancel-btn" on:click={() => (showAssignTaskModal = false)}>
             Cancel
           </button>
         </div>
@@ -681,10 +669,9 @@
           <option value="In Progress">In Progress</option>
           <option value="Completed">Completed</option>
         </select>
-
         <label for="editTaskAssignedTo">Assign to:</label>
-        <select id="editTaskAssignedTo" bind:value={editTaskData.assignedTo} required >
-          <option value="" disabled>Select User</option>
+        <select id="editTaskAssignedTo" bind:value={editTaskData.assignedTo} required>
+          <option value="" disabled selected>Select User</option>
           {#each users as user (user.id)}
             {#if user.role !== "Admin"}
               <option value={user.id}>{user.firstName} ({user.role})</option>
@@ -693,7 +680,7 @@
         </select>
         <div class="modal-actions">
           <button class="primary-btn" on:click={updateTask}>Save Changes</button>
-          <button class="cancel-btn"on:click={() => (showEditTaskModal = false)}>
+          <button class="cancel-btn" on:click={() => (showEditTaskModal = false)}>
             Cancel
           </button>
         </div>
@@ -707,6 +694,8 @@
     font-family: Arial, sans-serif;
     background-color: #f4f7f9;
     min-height: 100vh;
+    margin-top: 40%;
+    margin-left: -15%;
   }
   
   .side-panel {
@@ -734,9 +723,7 @@
     cursor: pointer;
     color: #ecf0f1;
     font-size: 14px;
-    transition:
-      background-color 0.2s,
-      box-shadow 0.2s;
+    transition: background-color 0.2s, box-shadow 0.2s;
   }
 
   .nav-btn:hover {
@@ -762,84 +749,78 @@
 
   /* Main Content Area */
   main {
-    margin-left: 150px;
-    margin-top: 250px;
+    margin-left: 270px;
     padding: 20px;
     width: calc(100% - 270px);
     box-sizing: border-box;
   }
 
-  /* Generate Task Report View enhancements */
+  /* Updated Report View CSS */
   .report-view {
     display: flex;
     justify-content: center;
-    align-items: center;
-    margin-top: -20%;
-    padding: 20% 50%;
-    background-color: red;
-    width:100%;
+    width: 100%;
+    height: 30%;
+    margin-left:8%;
+    
   }
-
+  
   .report-card {
     background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    padding: 100px;
-    height: 70%;
-    width: 150%;
+    border-radius: 8px;
+    padding: 20px;
+    width: 100%;
+    max-width: 800px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    margin-top:-6%
   }
-
+  
   .report-card h2 {
     text-align: center;
     margin-bottom: 20px;
     color: #333;
   }
-
+  
   .report-filters {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    display: flex;
     gap: 20px;
+    flex-wrap: wrap;
+    align-items: center;
     margin-bottom: 20px;
+    margin-left: 10%;
   }
-
-  .filter-group {
+  
+  .report-filters .filter-group {
     display: flex;
     flex-direction: column;
   }
-
-  .filter-group label {
-    margin-bottom: 5px;
-    font-weight: bold;
-    color: #333;
+  
+  .report-filters select,
+  .report-filters input[type="date"] {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
   }
-
-  .report-actions {
-    margin-top: 20%;
-    text-align: center;
-    background-color: red;
-    width: 100%;
-    height: 150%;
-  }
-
+  
   .report-preview {
     margin-top: 20px;
-    max-height: 400px;
-    overflow-y: auto;
     border: 1px solid #ddd;
     padding: 15px;
     background: #f9f9f9;
     border-radius: 8px;
   }
 
-  /* User Management */
+  
   .user-management {
-    margin-top: 60px;
+    margin-top: 20%;
+    margin-left: 10%;
     text-align: center;
   }
 
-  /* Dashboard Cards */
+  
   .dashboard-cards {
-    margin-bottom: 50px;
+    margin-bottom: 10%; 
+    margin-top: -10%;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -855,6 +836,8 @@
     width: 200px;
     text-align: center;
     transition: transform 0.2s, box-shadow 0.2s;
+    margin-left: 2%;
+    margin-right: 2%;
   }
 
   .card:hover {
@@ -902,19 +885,16 @@
 
   /* Buttons */
   .primary-btn, .userManagementbtn {
-    margin-top: -10%;
     padding: 10px 16px;
     border: none;
-    height: 15%;
-    width: 20%;
     border-radius: 12px;
     cursor: pointer;
     background-color: #2980b9;
     color: #fff;
-    transition:
-      background-color 0.2s,
-      box-shadow 0.2s;
+    transition: background-color 0.2s, box-shadow 0.2s;
+    width: 25%;
   }
+  
   .primary-btn:hover, .userManagementbtn:hover {
     background-color: #1f6391;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -928,9 +908,7 @@
     border-radius: 4px;
     cursor: pointer;
     font-size: 14px;
-    transition:
-      background-color 0.2s,
-      box-shadow 0.2s;
+    transition: background-color 0.2s, box-shadow 0.2s;
   }
 
   .edit-btn {
@@ -961,9 +939,7 @@
     cursor: pointer;
     background-color: #bdc3c7;
     color: #333;
-    transition:
-      background-color 0.2s,
-      box-shadow 0.2s;
+    transition: background-color 0.2s, box-shadow 0.2s;
   }
 
   .cancel-btn:hover {
@@ -984,6 +960,7 @@
     align-items: center;
     justify-content: center;
   }
+
   .modal-content {
     background: #fff;
     width: 90%;
@@ -994,15 +971,18 @@
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
     position: relative;
   }
+
   .modal-content h2 {
     margin-top: 0;
     color: #333;
   }
+
   .modal-content label {
     display: block;
     margin-top: 10px;
     font-weight: bold;
   }
+
   .modal-content input,
   .modal-content textarea,
   .modal-content select {
@@ -1014,12 +994,14 @@
     border: 1px solid #ccc;
     font-size: 14px;
   }
+
   .modal-actions {
     display: flex;
     justify-content: flex-end;
     gap: 10px;
     margin-top: 20px;
   }
+
   .action-buttons {
     display: flex;
     gap: 8px;
@@ -1029,21 +1011,40 @@
   }
 
   .TaskContainer {
-    margin-top: 30%;
+    margin-top: 20%;
     flex-direction: column;
     justify-content: center;
   }
 
-  .buttonContainer {
+  .buttonContainer-add {
     padding-bottom: 5%;
     display: flex;
     justify-content: center;
     flex-direction: column;
+    margin-left: 13%;
+    margin-bottom: -25%;
+    margin-top: -10%;
   }
 
-  .userManagementbtn{
-    margin-bottom: -15%;
+  .buttonContainer-assign{
+    padding-bottom: 5%;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    margin-left: 0%;
+    margin-bottom: -2%;
+    margin-top: -10%;
   }
 
-  
+  .card-containter{
+    margin-bottom: -5%;
+    display:flex;
+    flex-direction: row;
+    content: center;
+  }
+
+  .userManagementbtn {
+    margin-bottom: 20px;
+    
+  }
 </style>

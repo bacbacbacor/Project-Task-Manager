@@ -1,31 +1,23 @@
 <!-- Manager.svelte -->
 <script>
   import { onMount } from "svelte";
-
   let managerName = "";
   let tasks = [];
   let employees = [];
   let loggedInUser;
-
-  // View state: "tasks" or "report"
   let currentView = "tasks";
-
-  // Modals
   let showAssignTaskModal = false;
   let showEditTaskModal = false;
   let showReportModal = false;
-
-  // Form data for new task assignment
   let newTask = {
     title: "",
     description: "",
     startDate: "",
     endDate: "",
     status: "Pending",
-    assignedTo: ""
+    assignedTo: "",
   };
 
-  // Form data for editing a task
   let editTaskData = {
     id: null,
     title: "",
@@ -33,11 +25,9 @@
     startDate: "",
     endDate: "",
     status: "",
-    assignedTo: ""
+    assignedTo: "",
   };
 
-  // Report generation state
-  // Manager can choose themselves or an employee in the same office
   let reportPreviewHtml = "";
   let reportStartDate = "";
   let reportEndDate = "";
@@ -54,12 +44,11 @@
     }
   });
 
-  // Load tasks visible to the manager (server-side filtering)
   async function loadTasks() {
     try {
       if (!loggedInUser) return;
       const url = `${API_URL}/tasks?userId=${loggedInUser.id}&role=${loggedInUser.role}&office=${encodeURIComponent(
-        loggedInUser.office
+        loggedInUser.office,
       )}`;
       const res = await fetch(url);
       tasks = await res.json();
@@ -68,7 +57,6 @@
     }
   }
 
-  // Load employees in the same office as the manager
   async function loadEmployees() {
     try {
       if (!loggedInUser) return;
@@ -77,21 +65,26 @@
       employees = allUsers.filter(
         (u) =>
           u.role === "Employee" &&
-          u.office.trim().toLowerCase() === loggedInUser.office.trim().toLowerCase()
+          u.office.trim().toLowerCase() ===
+            loggedInUser.office.trim().toLowerCase(),
       );
     } catch (error) {
       console.error("Error loading employees:", error);
     }
   }
 
-  // Assign a new task
   async function assignTask() {
     if (!loggedInUser) {
       alert("You must be logged in as a Manager.");
       return;
     }
     const taskToSend = { ...newTask, createdBy: loggedInUser.id };
-    if (!taskToSend.title || !taskToSend.startDate || !taskToSend.endDate || !taskToSend.assignedTo) {
+    if (
+      !taskToSend.title ||
+      !taskToSend.startDate ||
+      !taskToSend.endDate ||
+      !taskToSend.assignedTo
+    ) {
       alert("Please fill in all required fields.");
       return;
     }
@@ -99,20 +92,27 @@
       const res = await fetch(`${API_URL}/tasks`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(taskToSend)
+        body: JSON.stringify(taskToSend),
       });
+
       const data = await res.json();
       console.log("Task assigned:", data);
       await loadTasks();
       showAssignTaskModal = false;
-      newTask = { title: "", description: "", startDate: "", endDate: "", status: "Pending", assignedTo: "" };
+      newTask = {
+        title: "",
+        description: "",
+        startDate: "",
+        endDate: "",
+        status: "Pending",
+        assignedTo: "",
+      };
     } catch (error) {
       console.error("Error assigning task:", error);
       alert("Error assigning task.");
     }
   }
 
-  // Edit a task
   async function editTask(taskId) {
     try {
       const res = await fetch(`${API_URL}/tasks/${taskId}`);
@@ -124,7 +124,7 @@
         startDate: task.startDate ? task.startDate.split("T")[0] : "",
         endDate: task.endDate ? task.endDate.split("T")[0] : "",
         status: task.status,
-        assignedTo: task.assignedTo
+        assignedTo: task.assignedTo,
       };
       showEditTaskModal = true;
     } catch (error) {
@@ -132,13 +132,12 @@
     }
   }
 
-  // Update a task
   async function updateTask() {
     try {
       const res = await fetch(`${API_URL}/tasks/${editTaskData.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(editTaskData)
+        body: JSON.stringify(editTaskData),
       });
       const data = await res.json();
       console.log("Task updated:", data);
@@ -149,7 +148,6 @@
     }
   }
 
-  // Delete a task
   async function deleteTask(taskId) {
     try {
       await fetch(`${API_URL}/tasks/${taskId}`, { method: "DELETE" });
@@ -159,36 +157,34 @@
     }
   }
 
-  // Preview report (manager or an employee in same office) with date overlap
   async function previewReport() {
     if (!reportUserId || !reportStartDate || !reportEndDate) {
       alert("Please select a user and a date range.");
       return;
     }
     try {
-      // Fetch tasks visible to the manager
       const url = `${API_URL}/tasks?userId=${loggedInUser.id}&role=${loggedInUser.role}&office=${encodeURIComponent(
-        loggedInUser.office
+        loggedInUser.office,
       )}`;
       const res = await fetch(url);
       const allTasks = await res.json();
-
-      // Filter by user (creator or assignee) and overlap in date range
       const filtered = allTasks.filter((task) => {
-        const belongsToUser =
-          task.createdBy == reportUserId || task.assignedTo == reportUserId;
-
-        const taskStart = new Date(task.startDate);
-        const taskEnd = new Date(task.endDate);
         const filterStart = new Date(reportStartDate);
         const filterEnd = new Date(reportEndDate);
-
-        // Overlap check
-        const overlaps = (taskStart <= filterEnd) && (taskEnd >= filterStart);
-
+        const taskStart = new Date(task.startDate);
+        const taskEnd = new Date(task.endDate);
+        const overlaps = taskStart <= filterEnd && taskEnd >= filterStart;
+        let belongsToUser = false;
+        if (reportUserId == loggedInUser.id) {
+          // For "Myself", include only tasks assigned to the manager
+          belongsToUser = task.assignedTo == reportUserId;
+        } else {
+          // For an employee, include tasks where they are either the creator or the assignee
+          belongsToUser =
+            task.createdBy == reportUserId || task.assignedTo == reportUserId;
+        }
         return belongsToUser && overlaps;
       });
-
       if (filtered.length === 0) {
         reportPreviewHtml = "<p>No tasks found for the selected criteria.</p>";
       } else {
@@ -197,7 +193,7 @@
               <th>ID</th><th>Title</th><th>Description</th>
               <th>Start Date</th><th>End Date</th><th>Status</th>
             </tr>`;
-        filtered.forEach(task => {
+        filtered.forEach((task) => {
           html += `<tr>
               <td>${task.id}</td>
               <td>${task.title}</td>
@@ -215,21 +211,22 @@
     }
   }
 
-  // Download PDF
   function downloadReport() {
     if (!window.jspdf || !window.jspdf.jsPDF) {
-      alert("PDF generation library not loaded. Please contact your administrator.");
+      alert(
+        "PDF generation library not loaded. Please contact your administrator.",
+      );
       return;
     }
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     doc.html(reportPreviewHtml, {
-      callback: function(doc) {
+      callback: function (doc) {
         doc.save("task_report.pdf");
       },
       x: 10,
       y: 10,
-      html2canvas: { scale: 0.295 }
+      html2canvas: { scale: 0.295 },
     });
   }
 
@@ -250,91 +247,156 @@
     <button class="nav-btn" on:click={() => setView("report")}>Generate Task Report</button>
     <button class="logout-btn" on:click={logout}>Logout</button>
   </aside>
-
   <main>
-    <h2>Welcome, {managerName}!</h2>
-
     {#if currentView === "tasks"}
       <section class="task-section">
-        <h2>Tasks</h2>
-        <button class="primary-btn" on:click={() => (showAssignTaskModal = true)}>➕ Add Task</button>
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>Description</th>
-              <th>Start Date</th>
-              <th>End Date</th>
-              <th>Status</th>
-              <th>Created By</th>
-              <th>Assigned To</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {#if tasks.length === 0}
-              <tr><td colspan="8">No tasks assigned.</td></tr>
-            {:else}
-              {#each tasks as task}
+        <div class="task-container">
+          <div class="title-container">
+            <h2 class="title-task">Tasks</h2>
+          </div>
+          <div class="horizontal-container">
+            <div class="welcome-msg">
+              <h2 class="manager-title">Manager:</h2>
+              <h2 class="manager-name">{managerName}</h2>
+            </div>
+            <div class="button-container">
+              <button
+                class="primary-btn-add"on:click={() => (showAssignTaskModal = true)}>➕ Add Task</button>
+            </div>
+          </div>
+          <div class="table-container">
+            <table class="admin-table">
+              <thead>
                 <tr>
-                  <td>{task.title}</td>
-                  <td>{task.description}</td>
-                  <td>{new Date(task.startDate).toLocaleDateString()}</td>
-                  <td>{new Date(task.endDate).toLocaleDateString()}</td>
-                  <td>{task.status}</td>
-                  <td>{task.createdBy || "Unknown"}</td>
-                  <td>{task.assignedTo || "Unknown"}</td>
-                  <td>
-                    <button class="edit-btn" on:click={() => editTask(task.id)}>✏️ Edit</button>
-                    <button class="delete-btn" on:click={() => deleteTask(task.id)}>🗑 Delete</button>
-                  </td>
+                  <th>Title</th>
+                  <th>Description</th>
+                  <th>Start Date</th>
+                  <th>End Date</th>
+                  <th>Status</th>
+                  <th>Created By</th>
+                  <th>Assigned To</th>
+                  <th>Actions</th>
                 </tr>
-              {/each}
-            {/if}
-          </tbody>
-        </table>
+              </thead>
+              <tbody>
+                {#if tasks.length === 0}
+                  <tr><td colspan="8">No tasks assigned.</td></tr>
+                {:else}
+                  {#each tasks as task}
+                    <tr>
+                      <td>{task.title}</td>
+                      <td>{task.description}</td>
+                      <td>{new Date(task.startDate).toLocaleDateString()}</td>
+                      <td>{new Date(task.endDate).toLocaleDateString()}</td>
+                      <td>{task.status}</td>
+                      <td>{task.createdBy || "Unknown"}</td>
+                      <td>{task.assignedTo || "Unknown"}</td>
+                      <td>
+                        <button
+                          class="edit-btn"
+                          on:click={() => editTask(task.id)}>Edit ✏️</button
+                        >
+                        <button
+                          class="delete-btn"
+                          on:click={() => deleteTask(task.id)}>Delete 🗑</button
+                        >
+                      </td>
+                    </tr>
+                  {/each}
+                {/if}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </section>
     {:else if currentView === "report"}
-      <section class="report-view">
-        <h2>Generate Task Report</h2>
-        <label for="reportUserSelect">Select User:</label>
-        <select id="reportUserSelect" bind:value={reportUserId}>
-          <option value="" disabled>Select a user</option>
-          <!-- Manager can select themselves -->
-          <option value={loggedInUser.id}>Myself (Manager)</option>
-          <!-- Employees in same office -->
-          {#each employees as emp}
-            <option value={emp.id}>{emp.firstName} {emp.lastName} ({emp.role})</option>
-          {/each}
-        </select>
-        <label for="reportStartDateInput">Start Date:</label>
-        <input id="reportStartDateInput" type="date" bind:value={reportStartDate} />
-        <label for="reportEndDateInput">End Date:</label>
-        <input id="reportEndDateInput" type="date" bind:value={reportEndDate} />
-        <button class="primary-btn" on:click={previewReport}>Preview Report</button>
-        {#if reportPreviewHtml}
-          <div class="report-preview">
-            {@html reportPreviewHtml}
+      <div class="report-view-container">
+        <section class="report-view">
+          <div >
+            <h2 class="title-task-report">Generate Task Report</h2>
           </div>
-          <button class="primary-btn" on:click={downloadReport}>Download PDF</button>
-        {/if}
-      </section>
+          <div class="dropdown-container">
+            <div class="dropdown">
+              <label class="title-dropdown" for="reportUserSelect">Select User:</label>
+            <select id="reportUserSelect" bind:value={reportUserId}>
+              <option value="" disabled>Select a user</option>
+              <option value={loggedInUser.id}>Myself (Manager)</option>
+              {#each employees as emp}
+                <option value={emp.id}
+                  >{emp.firstName} {emp.lastName} ({emp.role})</option
+                >
+              {/each}
+            </select>
+            </div>
+            
+            <div class="dropdown">
+              <label class="title-dropdown" for="reportStartDateInput">Start Date:</label>
+              <input
+                id="reportStartDateInput"
+                type="date"
+                bind:value={reportStartDate}
+              />
+            </div>
+
+            <div class="dropdown">
+              <label class="title-dropdown" for="reportEndDateInput">End Date:</label>
+              <input
+                id="reportEndDateInput"
+                type="date"
+                bind:value={reportEndDate}
+              />
+            </div>
+            
+            
+            
+          </div>
+         
+          <button class="primary-btn" on:click={previewReport}
+            >Preview Report</button
+          >
+          {#if reportPreviewHtml}
+            <div class="report-preview">
+              {@html reportPreviewHtml}
+            </div>
+            <button class="primary-btn" on:click={downloadReport}
+              >Download PDF</button
+            >
+          {/if}
+        </section>
+      </div>
     {/if}
   </main>
-
-  <!-- Modals -->
   {#if showAssignTaskModal}
     <div class="modal-overlay">
       <div class="modal-content">
         <h2>Assign Task</h2>
         <label for="managerTaskTitle">Title:</label>
-        <input id="managerTaskTitle" type="text" bind:value={newTask.title} required />
+        <input
+          id="managerTaskTitle"
+          type="text"
+          bind:value={newTask.title}
+          required
+        />
         <label for="managerTaskDescription">Description:</label>
-        <textarea id="managerTaskDescription" bind:value={newTask.description} required></textarea>
+        <textarea
+          id="managerTaskDescription"
+          bind:value={newTask.description}
+          required
+        ></textarea>
         <label for="managerTaskStartDate">Start Date:</label>
-        <input id="managerTaskStartDate" type="date" bind:value={newTask.startDate} required />
+        <input
+          id="managerTaskStartDate"
+          type="date"
+          bind:value={newTask.startDate}
+          required
+        />
         <label for="managerTaskEndDate">End Date:</label>
-        <input id="managerTaskEndDate" type="date" bind:value={newTask.endDate} required />
+        <input
+          id="managerTaskEndDate"
+          type="date"
+          bind:value={newTask.endDate}
+          required
+        />
         <label for="managerTaskStatus">Status:</label>
         <select id="managerTaskStatus" bind:value={newTask.status}>
           <option value="Pending">Pending</option>
@@ -342,33 +404,57 @@
           <option value="Completed">Completed</option>
         </select>
         <label for="managerTaskAssignedTo">Assign to:</label>
-        <select id="managerTaskAssignedTo" bind:value={newTask.assignedTo} required>
+        <select
+          id="managerTaskAssignedTo"
+          bind:value={newTask.assignedTo}
+          required
+        >
           <option value="" disabled>Select User</option>
-          <!-- New option for assigning to self -->
           <option value={loggedInUser.id}>Assign to Myself</option>
           {#each employees as emp}
             <option value={emp.id}>{emp.firstName} ({emp.role})</option>
           {/each}
         </select>
         <button class="primary-btn" on:click={assignTask}>Assign Task</button>
-        <button class="cancel-btn" on:click={() => (showAssignTaskModal = false)}>Cancel</button>
+        <button
+          class="cancel-btn"
+          on:click={() => (showAssignTaskModal = false)}>Cancel</button
+        >
       </div>
     </div>
   {/if}
-
   {#if showEditTaskModal}
     <div class="modal-overlay">
       <div class="modal-content">
         <h2>Edit Task</h2>
         <input type="hidden" bind:value={editTaskData.id} />
         <label for="editTaskTitle">Title:</label>
-        <input id="editTaskTitle" type="text" bind:value={editTaskData.title} required />
+        <input
+          id="editTaskTitle"
+          type="text"
+          bind:value={editTaskData.title}
+          required
+        />
         <label for="editTaskDescription">Description:</label>
-        <textarea id="editTaskDescription" bind:value={editTaskData.description} required></textarea>
+        <textarea
+          id="editTaskDescription"
+          bind:value={editTaskData.description}
+          required
+        ></textarea>
         <label for="editTaskStartDate">Start Date:</label>
-        <input id="editTaskStartDate" type="date" bind:value={editTaskData.startDate} required />
+        <input
+          id="editTaskStartDate"
+          type="date"
+          bind:value={editTaskData.startDate}
+          required
+        />
         <label for="editTaskEndDate">End Date:</label>
-        <input id="editTaskEndDate" type="date" bind:value={editTaskData.endDate} required />
+        <input
+          id="editTaskEndDate"
+          type="date"
+          bind:value={editTaskData.endDate}
+          required
+        />
         <label for="editTaskStatus">Status:</label>
         <select id="editTaskStatus" bind:value={editTaskData.status}>
           <option value="Pending">Pending</option>
@@ -376,27 +462,42 @@
           <option value="Completed">Completed</option>
         </select>
         <button class="primary-btn" on:click={updateTask}>Save Changes</button>
-        <button class="cancel-btn" on:click={() => (showEditTaskModal = false)}>Cancel</button>
+        <button class="cancel-btn" on:click={() => (showEditTaskModal = false)}
+          >Cancel</button
+        >
       </div>
     </div>
   {/if}
-
   {#if showReportModal}
     <div class="modal-overlay">
       <div class="modal-content">
         <h2>Task Report</h2>
         <label for="reportStartDateModal">Start Date:</label>
-        <input id="reportStartDateModal" type="date" bind:value={reportStartDate} />
+        <input
+          id="reportStartDateModal"
+          type="date"
+          bind:value={reportStartDate}
+        />
         <label for="reportEndDateModal">End Date:</label>
         <input id="reportEndDateModal" type="date" bind:value={reportEndDate} />
-        <button class="primary-btn" on:click={previewReport}>Preview Report</button>
+        <button class="primary-btn" on:click={previewReport}
+          >Preview Report</button
+        >
         {#if reportPreviewHtml}
           <div class="report-preview">
             {@html reportPreviewHtml}
           </div>
-          <button class="primary-btn" on:click={downloadReport}>Download PDF</button>
+          <button class="primary-btn" on:click={downloadReport}
+            >Download PDF</button
+          >
         {/if}
-        <button class="cancel-btn" on:click={() => { showReportModal = false; reportPreviewHtml = ""; }}>
+        <button
+          class="cancel-btn"
+          on:click={() => {
+            showReportModal = false;
+            reportPreviewHtml = "";
+          }}
+        >
           Close
         </button>
       </div>
@@ -405,7 +506,6 @@
 </div>
 
 <style>
-  /* (Same CSS as before) */
   :global(body) {
     font-family: Arial, sans-serif;
     background-color: #f4f7f9;
@@ -414,7 +514,6 @@
     text-align: center;
   }
 
-  /* Side Panel */
   .side-panel {
     position: fixed;
     top: 0;
@@ -431,6 +530,7 @@
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
     z-index: 999;
   }
+
   .nav-btn {
     background-color: #34495e;
     border: none;
@@ -441,9 +541,11 @@
     font-size: 14px;
     transition: background-color 0.2s;
   }
+
   .nav-btn:hover {
     background-color: #2c3e50;
   }
+
   .logout-btn {
     background-color: #e74c3c;
     border: none;
@@ -454,23 +556,15 @@
     font-size: 14px;
     transition: background-color 0.2s;
   }
+
   .logout-btn:hover {
     background-color: #c0392b;
-  }
-
-  main {
-    margin-left: 150px;
-    margin-top: 500px;
-    padding: 20px;
-    box-sizing: border-box;
-    text-align: left;
   }
 
   h2 {
     color: #333;
   }
 
-  /* Task Table */
   .admin-table {
     width: 90%;
     margin: 20px auto;
@@ -480,21 +574,23 @@
     overflow: hidden;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   }
+
   .admin-table th,
   .admin-table td {
     border: 1px solid #ddd;
     padding: 10px;
     text-align: center;
   }
+
   .admin-table th {
     background-color: #2980b9;
     color: #fff;
   }
+
   .admin-table tr:hover {
     background-color: #f2f2f2;
   }
 
-  /* Buttons */
   .primary-btn {
     margin: 5px;
     padding: 10px 16px;
@@ -503,12 +599,28 @@
     cursor: pointer;
     background-color: #2980b9;
     color: #fff;
-    transition: background-color 0.2s, box-shadow 0.2s;
+    transition:
+      background-color 0.2s,
+      box-shadow 0.2s;
   }
-  .primary-btn:hover {
+
+  .primary-btn-add{
+    padding: 10px 10px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    background-color: #2980b9;
+    color: #fff;
+    height: 40%;
+    width: 120px;
+    transition: background-color 0.2s, box-shadow 0.2s
+  }
+
+  .primary-btn:hover, .primary-btn-add:hover {
     background-color: #1f6391;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
+
   .edit-btn,
   .delete-btn {
     margin: 2px;
@@ -517,16 +629,21 @@
     border-radius: 4px;
     cursor: pointer;
     font-size: 14px;
-    transition: background-color 0.2s, box-shadow 0.2s;
+    transition:
+      background-color 0.2s,
+      box-shadow 0.2s;
   }
+
   .edit-btn {
     background-color: #f39c12;
     color: #fff;
   }
+
   .edit-btn:hover {
     background-color: #d68910;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
+
   .delete-btn {
     background-color: #e74c3c;
     color: #fff;
@@ -535,6 +652,7 @@
     background-color: #c0392b;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
+
   .cancel-btn {
     margin: 5px;
     padding: 10px 16px;
@@ -543,14 +661,16 @@
     cursor: pointer;
     background-color: #bdc3c7;
     color: #333;
-    transition: background-color 0.2s, box-shadow 0.2s;
+    transition:
+      background-color 0.2s,
+      box-shadow 0.2s;
   }
+
   .cancel-btn:hover {
     background-color: #95a5a6;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
 
-  /* Report Preview */
   .report-preview {
     margin-top: 20px;
     max-height: 300px;
@@ -561,7 +681,6 @@
     border-radius: 6px;
   }
 
-  /* Modal Styling */
   .modal-overlay {
     display: flex;
     position: fixed;
@@ -574,6 +693,7 @@
     justify-content: center;
     z-index: 999;
   }
+
   .modal-content {
     background: #fff;
     width: 90%;
@@ -583,15 +703,18 @@
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
     text-align: left;
   }
+
   .modal-content h2 {
     margin-top: 0;
     color: #333;
   }
+
   .modal-content label {
     display: block;
     margin-top: 10px;
     font-weight: bold;
   }
+
   .modal-content input,
   .modal-content textarea,
   .modal-content select {
@@ -603,4 +726,88 @@
     border: 1px solid #ccc;
     font-size: 14px;
   }
+
+  main {
+    margin-left: 250px;
+    padding: 20px;
+    width: calc(100% - 250px);
+    box-sizing: border-box;
+  }
+
+  .manager-container {
+    margin-top: 85%;
+    margin-left: -10%;
+  }
+
+  .report-view-container {
+    margin-top: -65%;
+  }
+
+  .welcome-msg{
+    display: flex;
+    flex-direction: row;
+    content: center;
+  }
+
+  .title-container{
+   display: flex;
+   flex-direction: column;
+   content: center;
+  }
+
+  .manager-name{
+    font-size: 120%;
+    width: 200px;
+  }
+
+  .manager-title{
+    font-size: 120%;
+  }
+
+  .title-task{
+    font-size: 250%;
+    margin-bottom: 0%;
+  }
+
+  .title-task-report{
+    font-size: 250%;
+    margin-bottom: 10%;
+  }
+
+  .button-container{
+    display: flex;
+    flex-direction: row;
+    margin-bottom: -5%; 
+   
+  }
+
+  .dropdown-container{
+    display: flex;
+    flex-direction: row;
+    content: center;
+  }
+
+  .dropdown{
+    display: flex;
+    flex-direction: row;
+    content: center;
+    margin-left: 2%;
+    margin-right: 2%;
+  }
+
+  .title-dropdown{
+    display: flex;
+    flex-direction: row;
+  }
+
+  .horizontal-container{
+    border : 1px solid #ddd;
+    display: flex;
+    flex-direction: row;
+    content: center;
+    /* gap: 50%; */
+    justify-content: space-between;
+    height:20%
+  }
+
 </style>

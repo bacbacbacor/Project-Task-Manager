@@ -20,3 +20,24 @@ Target For Admin Dashboarad:
 When selecting an employee to generate the task, Admin can select a manager first then show the employees under that managers (dropdown options)
 
 Issue: as manager, the manager has no option to asign the tasks to himself, add in the dropdown in assign tasks a Assign to Myself so that the manager can add tasks to himself
+
+Target: Clean up UI, Follow figma as much as possible or kung unsa lang ma kaya
+
+Issue: In the Manager and Employee Side, the Genetate Task view is seen below the area, needs to be centered
+
+Target: Clean up and add minor features such
+
+Issue: In the Manager Dashboard, the filter for myself includes the tasks that the manager assinged
+Target: The filter for myself should only show the tasks assigned to the manager who is logged in
+
+Make sure this is ficed tomorrow
+
+Goal Tomorrow: Add  edit password for all users and make sure it will update the databse
+Goad for Tomorrow: Make sure the users can edit their details (Name, Address, Number,)
+
+Make sure each users can also change their password
+
+
+
+
+

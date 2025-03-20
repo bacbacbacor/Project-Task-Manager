@@ -1,10 +1,10 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
-const pool = require("../db"); // ✅ Import MySQL connection
+const pool = require("../db"); 
 
 const router = express.Router();
 
-// **GET: Fetch all users from MySQL**
+
 router.get("/", async (req, res) => {
     try {
         const [users] = await pool.query("SELECT id, username, role, office, firstName, lastName FROM users");
@@ -15,7 +15,7 @@ router.get("/", async (req, res) => {
     }
 });
 
-// **POST: Create a new user (Ensuring Correct Username Format)**
+
 router.post("/", async (req, res) => {
     const { role, office, firstName, lastName, number, address, birthday } = req.body;
 
@@ -24,18 +24,18 @@ router.post("/", async (req, res) => {
     }
 
     try {
-        const defaultPassword = await bcrypt.hash("default123", 10); // ✅ Hash default password
+        const defaultPassword = await bcrypt.hash("default123", 10); 
 
-        // ✅ Insert user with username set as 'user' + AUTO_INCREMENT ID
+        
         const [result] = await pool.query(
             "INSERT INTO users (username, password, role, office, firstName, lastName, number, address, birthday) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
             [`PENDING`, defaultPassword, role, office, firstName, lastName, number, address, birthday]
         );
 
-        const userId = result.insertId; // Get the new user ID
+        const userId = result.insertId; 
         const username = `user${userId}`;
 
-        // ✅ Immediately set the correct username in the database
+        
         await pool.query("UPDATE users SET username = ? WHERE id = ?", [username, userId]);
 
         res.json({ message: "User created successfully.", userId, username });
@@ -45,7 +45,7 @@ router.post("/", async (req, res) => {
     }
 });
 
-// **POST: Update Password**
+
 router.post("/update-password", async (req, res) => {
     const { username, newPassword } = req.body;
 
@@ -72,7 +72,7 @@ router.post("/update-password", async (req, res) => {
     }
 });
 
-// **PUT: Update user details**
+
 router.put("/:id", async (req, res) => {
     const { id } = req.params;
     const { firstName, lastName, role, office, number, address, birthday } = req.body;
@@ -91,17 +91,14 @@ router.put("/:id", async (req, res) => {
             return res.status(404).json({ message: "User not found or no changes detected." });
         }
 
-        res.json({ message: "✅ User updated successfully!" });
+        res.json({ message: "User updated successfully!" });
     } catch (error) {
-        console.error("❌ Error updating user:", error);
+        console.error("Error updating user:", error);
         res.status(500).json({ message: "Server error while updating user." });
     }
 });
 
 
-
-
-// **DELETE: Remove user**
 router.delete("/:id", async (req, res) => {
     const { id } = req.params;
 

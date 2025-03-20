@@ -1,15 +1,14 @@
 const express = require("express");
-const pool = require("../db"); // Using promise-based MySQL connection
+const pool = require("../db");
 const router = express.Router();
 
-// GET: Fetch tasks with filtering based on the requester
+
 router.get("/", async (req, res) => {
     const { userId, role, office } = req.query;
     const numericUserId = Number(userId);
 
     console.log("GET /tasks called with:", { userId, role, office, numericUserId });
 
-    // Updated query: include raw IDs along with user names for display
     let baseQuery = `
         SELECT tasks.id, tasks.title, tasks.description, tasks.startDate, tasks.endDate, 
                tasks.status, tasks.assignedTo, tasks.createdBy,
@@ -24,8 +23,6 @@ router.get("/", async (req, res) => {
 
     if (userId && role) {
         if (role === "Manager") {
-            // For Managers: show tasks they created, tasks assigned to them,
-            // AND tasks that belong to employees in the same office.
             conditions.push(
                 "(tasks.createdBy = ? OR tasks.assignedTo = ? OR " +
                 "(u1.role = 'Employee' AND UPPER(TRIM(u1.office)) = UPPER(TRIM(?))) OR " +
@@ -34,7 +31,6 @@ router.get("/", async (req, res) => {
             );
             queryParams.push(numericUserId, numericUserId, office, office);
         } else if (role === "Employee") {
-            // For Employees: show tasks where they are either the creator or the assignee.
             conditions.push("(tasks.createdBy = ? OR tasks.assignedTo = ?)");
             queryParams.push(numericUserId, numericUserId);
         }
@@ -52,26 +48,23 @@ router.get("/", async (req, res) => {
         console.log("Tasks Retrieved:", rows);
         res.json(rows);
     } catch (error) {
-        console.error("❌ Error fetching tasks from MySQL:", error);
+        console.error("Error fetching tasks from MySQL:", error);
         res.status(500).json({ message: "Server error while fetching tasks." });
     }
 });
 
-// POST: Create a new task (Managers can only assign to employees in the same office)
 router.post("/", async (req, res) => {
     const { title, description, startDate, endDate, status, assignedTo, createdBy } = req.body;
     if (!title || !startDate || !endDate || !status || !assignedTo || !createdBy) {
         return res.status(400).json({ message: "Missing required fields." });
     }
     try {
-        // Fetch manager's office
         const [manager] = await pool.query("SELECT office, role FROM users WHERE id = ?", [createdBy]);
         if (!manager.length) {
             return res.status(404).json({ message: "Manager not found." });
         }
         const managerOffice = manager[0].office;
         const managerRole = manager[0].role;
-        // Check if the assigned employee belongs to the same office
         const [employee] = await pool.query("SELECT office FROM users WHERE id = ?", [assignedTo]);
         if (!employee.length) {
             return res.status(404).json({ message: "Assigned employee not found." });
@@ -90,7 +83,6 @@ router.post("/", async (req, res) => {
     }
 });
 
-// PUT: Update an existing task
 router.put("/:id", async (req, res) => {
     const { id } = req.params;
     const { title, description, startDate, endDate, status, assignedTo } = req.body;
@@ -113,12 +105,11 @@ router.put("/:id", async (req, res) => {
         }
         res.json({ message: "Task updated successfully." });
     } catch (error) {
-        console.error("❌ Error updating task:", error);
+        console.error("Error updating task:", error);
         res.status(500).json({ message: "Server error while updating task." });
     }
 });
 
-// DELETE: Remove a task
 router.delete("/:id", async (req, res) => {
     const { id } = req.params;
     try {
@@ -133,7 +124,6 @@ router.delete("/:id", async (req, res) => {
     }
 });
 
-// GET: Fetch a single task by ID
 router.get("/:id", async (req, res) => {
     const { id } = req.params;
     try {
@@ -147,5 +137,4 @@ router.get("/:id", async (req, res) => {
         res.status(500).json({ message: "Server error while fetching task." });
     }
 });
-
 module.exports = router;
