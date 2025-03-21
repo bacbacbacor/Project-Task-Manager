@@ -4,7 +4,6 @@ const pool = require("../db");
 
 const router = express.Router();
 
-
 router.get("/", async (req, res) => {
     try {
         const [users] = await pool.query("SELECT id, username, role, office, firstName, lastName FROM users");
@@ -14,7 +13,6 @@ router.get("/", async (req, res) => {
         res.status(500).json({ message: "Server error while fetching users." });
     }
 });
-
 
 router.post("/", async (req, res) => {
     const { role, office, firstName, lastName, number, address, birthday } = req.body;
@@ -26,7 +24,6 @@ router.post("/", async (req, res) => {
     try {
         const defaultPassword = await bcrypt.hash("default123", 10); 
 
-        
         const [result] = await pool.query(
             "INSERT INTO users (username, password, role, office, firstName, lastName, number, address, birthday) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
             [`PENDING`, defaultPassword, role, office, firstName, lastName, number, address, birthday]
@@ -35,7 +32,6 @@ router.post("/", async (req, res) => {
         const userId = result.insertId; 
         const username = `user${userId}`;
 
-        
         await pool.query("UPDATE users SET username = ? WHERE id = ?", [username, userId]);
 
         res.json({ message: "User created successfully.", userId, username });
@@ -44,7 +40,6 @@ router.post("/", async (req, res) => {
         res.status(500).json({ message: "Server error while creating user." });
     }
 });
-
 
 router.post("/update-password", async (req, res) => {
     const { username, newPassword } = req.body;
@@ -72,24 +67,37 @@ router.post("/update-password", async (req, res) => {
     }
 });
 
-
 router.put("/:id", async (req, res) => {
     const { id } = req.params;
     const { firstName, lastName, role, office, number, address, birthday } = req.body;
 
-    if (!firstName || !lastName || !role || !office) {
-        return res.status(400).json({ message: "Missing required fields." });
-    }
-
     try {
+        // Retrieve the current user record from the database
+        const [rows] = await pool.query("SELECT * FROM users WHERE id = ?", [id]);
+        if (rows.length === 0) {
+            return res.status(404).json({ message: "User not found." });
+        }
+        const currentUser = rows[0];
+
+        // Merge incoming data with the existing record values
+        const updatedFirstName = firstName !== undefined ? firstName : currentUser.firstName;
+        const updatedLastName = lastName !== undefined ? lastName : currentUser.lastName;
+        const updatedRole = role !== undefined ? role : currentUser.role;
+        const updatedOffice = office !== undefined ? office : currentUser.office;
+        const updatedNumber = number !== undefined ? number : currentUser.number;
+        const updatedAddress = address !== undefined ? address : currentUser.address;
+        const updatedBirthday = birthday !== undefined ? birthday : currentUser.birthday;
+
+        // Validate required fields after merging
+        if (!updatedFirstName || !updatedLastName || !updatedRole || !updatedOffice) {
+            return res.status(400).json({ message: "Missing required fields." });
+        }
+
+        // Update the user record with merged values
         const [result] = await pool.query(
             "UPDATE users SET firstName = ?, lastName = ?, role = ?, office = ?, number = ?, address = ?, birthday = ? WHERE id = ?",
-            [firstName, lastName, role, office, number || null, address || null, birthday || null, id]
+            [updatedFirstName, updatedLastName, updatedRole, updatedOffice, updatedNumber, updatedAddress, updatedBirthday, id]
         );
-
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ message: "User not found or no changes detected." });
-        }
 
         res.json({ message: "User updated successfully!" });
     } catch (error) {
@@ -97,7 +105,6 @@ router.put("/:id", async (req, res) => {
         res.status(500).json({ message: "Server error while updating user." });
     }
 });
-
 
 router.delete("/:id", async (req, res) => {
     const { id } = req.params;
@@ -132,7 +139,5 @@ router.get("/:id", async (req, res) => {
         res.status(500).json({ message: "Server error while fetching user." });
     }
 });
-
-
 
 module.exports = router;

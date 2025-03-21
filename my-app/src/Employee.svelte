@@ -1,6 +1,7 @@
 <!-- Employee.svelte -->
 <script>
   import { onMount } from "svelte";
+
   let employeeName = "";
   let tasks = [];
   let loggedInUser;
@@ -8,6 +9,23 @@
   let showTaskModal = false;
   let showEditTaskModal = false;
   let showReportModal = false;
+  let showChangePasswordModal = false;
+  let showProfileModal = false; // For Edit Profile
+
+  // Variables for Change Password
+  let currentPassword = "";
+  let newPassword = "";
+  let confirmNewPassword = "";
+
+  // Variables for profile data update
+  let profileData = {
+    firstName: "",
+    lastName: "",
+    birthday: "",
+    number: "",
+    address: ""
+  };
+
   let newTask = {
     title: "",
     description: "",
@@ -29,10 +47,19 @@
   let reportUserId = "";
 
   const API_URL = "http://localhost:3000";
+
   onMount(() => {
     loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
     if (loggedInUser) {
       employeeName = `${loggedInUser.firstName} ${loggedInUser.lastName}`;
+      // Initialize profileData with current user info
+      profileData = {
+        firstName: loggedInUser.firstName || "",
+        lastName: loggedInUser.lastName || "",
+        birthday: loggedInUser.birthday || "",
+        number: loggedInUser.number || "",
+        address: loggedInUser.address || ""
+      };
       loadTasks();
     }
   });
@@ -40,7 +67,7 @@
   async function loadTasks() {
     try {
       const res = await fetch(
-        `${API_URL}/tasks?userId=${loggedInUser.id}&role=${loggedInUser.role}`,
+        `${API_URL}/tasks?userId=${loggedInUser.id}&role=${loggedInUser.role}`
       );
       const filteredTasks = await res.json();
       tasks = filteredTasks;
@@ -131,7 +158,7 @@
     }
     try {
       const res = await fetch(
-        `${API_URL}/tasks?userId=${loggedInUser.id}&role=${loggedInUser.role}`,
+        `${API_URL}/tasks?userId=${loggedInUser.id}&role=${loggedInUser.role}`
       );
       const allTasks = await res.json();
       const filtered = allTasks.filter((task) => {
@@ -157,7 +184,6 @@
             <td>${new Date(task.startDate).toLocaleDateString()}</td>
             <td>${new Date(task.endDate).toLocaleDateString()}</td>
             <td>${task.status}</td>
-            
           </tr>`;
         });
         html += "</table>";
@@ -189,6 +215,84 @@
   function setView(view) {
     currentView = view;
   }
+
+  // ---------------------
+  // Change Password Feature
+  // ---------------------
+  async function changePassword() {
+    if (newPassword !== confirmNewPassword) {
+      alert("New passwords do not match.");
+      return;
+    }
+    const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
+    if (!loggedInUser) {
+      alert("You must be logged in.");
+      return;
+    }
+    try {
+      const res = await fetch(`${API_URL}/auth/update-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: loggedInUser.username,
+          currentPassword,
+          newPassword,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.message || "Error updating password.");
+      } else {
+        alert("Password updated successfully.");
+        showChangePasswordModal = false;
+        currentPassword = "";
+        newPassword = "";
+        confirmNewPassword = "";
+      }
+    } catch (error) {
+      console.error("Error changing password:", error);
+      alert("Error changing password.");
+    }
+  }
+
+  // ---------------------
+  // Edit Profile Feature
+  // ---------------------
+  async function updateProfile() {
+    // Create an updated profile object.
+    // If a field is empty, use the current value.
+    const updatedProfile = {
+      firstName: profileData.firstName.trim() || loggedInUser.firstName,
+      lastName: profileData.lastName.trim() || loggedInUser.lastName,
+      // Include required fields that employees cannot change:
+      role: loggedInUser.role,
+      office: loggedInUser.office,
+      birthday: profileData.birthday.trim() || loggedInUser.birthday,
+      number: profileData.number.trim() || loggedInUser.number,
+      address: profileData.address.trim() || loggedInUser.address,
+    };
+    try {
+      const res = await fetch(`${API_URL}/users/${loggedInUser.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedProfile),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.message || "Error updating profile.");
+      } else {
+        alert("Profile updated successfully.");
+        // Update localStorage and loggedInUser with the updated info
+        loggedInUser = { ...loggedInUser, ...updatedProfile };
+        localStorage.setItem("loggedInUser", JSON.stringify(loggedInUser));
+        employeeName = `${loggedInUser.firstName} ${loggedInUser.lastName}`;
+        showProfileModal = false;
+      }
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      alert("Error updating profile.");
+    }
+  }
 </script>
 
 <div class="employee-container">
@@ -196,6 +300,9 @@
     <h1>Employee Dashboard</h1>
     <button class="nav-btn" on:click={() => setView("tasks")}>My Tasks</button>
     <button class="nav-btn" on:click={() => setView("report")}>Task Report</button>
+    <button class="nav-btn" on:click={() => (showChangePasswordModal = true)}>Change Password</button>
+    <!-- New Edit Profile Button -->
+    <button class="nav-btn" on:click={() => (showProfileModal = true)}>Edit Profile</button>
     <button class="logout-btn" on:click={logout}>Logout</button>
   </aside>
   <main>
@@ -242,10 +349,7 @@
                   <td>{task.assignedTo || "Unknown"}</td>
                   <td>
                     <button class="edit-btn" on:click={() => editTask(task.id)}>✏️ Edit</button>
-                    <button
-                      class="delete-btn"
-                      on:click={() => deleteTask(task.id)}>🗑 Delete</button
-                    >
+                    <button class="delete-btn" on:click={() => deleteTask(task.id)}>🗑 Delete</button>
                   </td>
                 </tr>
               {/each}
@@ -256,26 +360,30 @@
     {:else if currentView === "report"}
       <div class="employee-container-generate">
         <section class="report-view">
-          <h2>Task Report</h2>
-          <label for="reportStartDate">Start Date:</label>
-          <input
-            id="reportStartDate"
-            type="date"
-            bind:value={reportStartDate}
-          />
-          <label for="reportEndDate">End Date:</label>
-          <input id="reportEndDate" type="date" bind:value={reportEndDate} />
-          <button class="primary-btn" on:click={previewReport}
-            >Preview Report</button
-          >
-          {#if reportPreviewHtml}
-            <div class="report-preview">
-              {@html reportPreviewHtml}
+          <div class="report-view-container">
+            <div class="title-container">
+              <h2 class="task-title-holder">Task Report</h2>
             </div>
-            <button class="primary-btn" on:click={downloadReport}
-              >Download PDF</button
-            >
-          {/if}
+            <div class="horizontal-container-generate">
+              <div class="first-dropdown">
+                <label class="date-holder" for="reportStartDate">Start Date:</label>
+                <input id="reportStartDate" type="date" bind:value={reportStartDate}/>
+              </div>
+              <div class="second-dropdown">
+                <label class="date-holder" for="reportEndDate">End Date:</label>
+                <input id="reportEndDate" type="date" bind:value={reportEndDate} />
+              </div>
+            </div>
+            <div class="button-container">
+              <button class="primary-btn" on:click={previewReport}>Preview Report</button>
+            </div>
+            {#if reportPreviewHtml}
+              <div class="report-preview">
+                {@html reportPreviewHtml}
+              </div>
+              <button class="primary-btn" on:click={downloadReport}>Download PDF</button>
+            {/if}
+          </div>
         </section>
       </div>
     {/if}
@@ -285,32 +393,13 @@
       <div class="modal-content">
         <h2>Add Task</h2>
         <label for="newTaskTitle">Title:</label>
-        <input
-          id="newTaskTitle"
-          type="text"
-          bind:value={newTask.title}
-          required
-        />
+        <input id="newTaskTitle" type="text" bind:value={newTask.title} required/>
         <label for="newTaskDescription">Description:</label>
-        <textarea
-          id="newTaskDescription"
-          bind:value={newTask.description}
-          required
-        ></textarea>
+        <textarea id="newTaskDescription" bind:value={newTask.description} required></textarea>
         <label for="newTaskStart">Start Date:</label>
-        <input
-          id="newTaskStart"
-          type="date"
-          bind:value={newTask.startDate}
-          required
-        />
+        <input id="newTaskStart" type="date" bind:value={newTask.startDate} required />
         <label for="newTaskEnd">End Date:</label>
-        <input
-          id="newTaskEnd"
-          type="date"
-          bind:value={newTask.endDate}
-          required
-        />
+        <input id="newTaskEnd" type="date" bind:value={newTask.endDate} required/>
         <label for="newTaskStatus">Status:</label>
         <select id="newTaskStatus" bind:value={newTask.status}>
           <option value="Pending">Pending</option>
@@ -318,9 +407,7 @@
           <option value="Completed">Completed</option>
         </select>
         <button class="primary-btn" on:click={addTask}>Add Task</button>
-        <button class="cancel-btn" on:click={() => (showTaskModal = false)}
-          >Cancel</button
-        >
+        <button class="cancel-btn" on:click={() => (showTaskModal = false)}>Cancel</button>
       </div>
     </div>
   {/if}
@@ -330,32 +417,13 @@
         <h2>Edit Task</h2>
         <input type="hidden" bind:value={editTaskData.id} />
         <label for="editTaskTitle">Title:</label>
-        <input
-          id="editTaskTitle"
-          type="text"
-          bind:value={editTaskData.title}
-          required
-        />
+        <input id="editTaskTitle" type="text" bind:value={editTaskData.title} required />
         <label for="editTaskDescription">Description:</label>
-        <textarea
-          id="editTaskDescription"
-          bind:value={editTaskData.description}
-          required
-        ></textarea>
+        <textarea id="editTaskDescription" bind:value={editTaskData.description} required ></textarea>
         <label for="editTaskStart">Start Date:</label>
-        <input
-          id="editTaskStart"
-          type="date"
-          bind:value={editTaskData.startDate}
-          required
-        />
+        <input id="editTaskStart" type="date" bind:value={editTaskData.startDate} required/>
         <label for="editTaskEnd">End Date:</label>
-        <input
-          id="editTaskEnd"
-          type="date"
-          bind:value={editTaskData.endDate}
-          required
-        />
+        <input id="editTaskEnd" type="date" bind:value={editTaskData.endDate} required/>
         <label for="editTaskStatus">Status:</label>
         <select id="editTaskStatus" bind:value={editTaskData.status}>
           <option value="Pending">Pending</option>
@@ -363,9 +431,7 @@
           <option value="Completed">Completed</option>
         </select>
         <button class="primary-btn" on:click={updateTask}>Save Changes</button>
-        <button class="cancel-btn" on:click={() => (showEditTaskModal = false)}
-          >Cancel</button
-        >
+        <button class="cancel-btn" on:click={() => (showEditTaskModal = false)}>Cancel</button>
       </div>
     </div>
   {/if}
@@ -374,33 +440,57 @@
       <div class="modal-content">
         <h2>Task Report</h2>
         <label for="reportStartDateModal">Start Date:</label>
-        <input
-          id="reportStartDateModal"
-          type="date"
-          bind:value={reportStartDate}
-        />
+        <input id="reportStartDateModal" type="date" bind:value={reportStartDate}/>
         <label for="reportEndDateModal">End Date:</label>
         <input id="reportEndDateModal" type="date" bind:value={reportEndDate} />
-        <button class="primary-btn" on:click={previewReport}
-          >Preview Report</button
-        >
+        <button class="primary-btn" on:click={previewReport}>Preview Report</button>
         {#if reportPreviewHtml}
           <div class="report-preview">
             {@html reportPreviewHtml}
           </div>
-          <button class="primary-btn" on:click={downloadReport}
-            >Download PDF</button
-          >
+          <button class="primary-btn" on:click={downloadReport}>Download PDF</button>
         {/if}
-        <button
-          class="cancel-btn"
-          on:click={() => {
-            showReportModal = false;
-            reportPreviewHtml = "";
-          }}
-        >
+        <button class="cancel-btn" on:click={() => { showReportModal = false; reportPreviewHtml = "";}}>
           Close
         </button>
+      </div>
+    </div>
+  {/if}
+  {#if showChangePasswordModal}
+    <div class="modal-overlay">
+      <div class="modal-content">
+        <h2>Change Password</h2>
+        <label for="currentPassword">Current Password:</label>
+        <input id="currentPassword" type="password" bind:value={currentPassword} />
+        <label for="newPassword">New Password:</label>
+        <input id="newPassword" type="password" bind:value={newPassword} />
+        <label for="confirmNewPassword">Confirm New Password:</label>
+        <input id="confirmNewPassword" type="password" bind:value={confirmNewPassword} />
+        <div class="modal-actions">
+          <button class="primary-btn" on:click={changePassword}>Update Password</button>
+          <button class="cancel-btn" on:click={() => showChangePasswordModal = false}>Cancel</button>
+        </div>
+      </div>
+    </div>
+  {/if}
+  {#if showProfileModal}
+    <div class="modal-overlay">
+      <div class="modal-content">
+        <h2>Edit Profile</h2>
+        <label for="firstName">First Name:</label>
+        <input id="firstName" type="text" bind:value={profileData.firstName} />
+        <label for="lastName">Last Name:</label>
+        <input id="lastName" type="text" bind:value={profileData.lastName} />
+        <label for="birthday">Birthday:</label>
+        <input id="birthday" type="date" bind:value={profileData.birthday} />
+        <label for="number">Phone Number:</label>
+        <input id="number" type="text" bind:value={profileData.number} />
+        <label for="address">Address:</label>
+        <input id="address" type="text" bind:value={profileData.address} />
+        <div class="modal-actions">
+          <button class="primary-btn" on:click={updateProfile}>Update Profile</button>
+          <button class="cancel-btn" on:click={() => showProfileModal = false}>Cancel</button>
+        </div>
       </div>
     </div>
   {/if}
@@ -431,7 +521,7 @@
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
     z-index: 999;
   }
-
+  
   .nav-btn {
     background-color: #34495e;
     border: none;
@@ -503,9 +593,7 @@
     cursor: pointer;
     background-color: #2980b9;
     color: #fff;
-    transition:
-      background-color 0.2s,
-      box-shadow 0.2s;
+    transition: background-color 0.2s, box-shadow 0.2s;
   }
   .primary-btn:hover {
     background-color: #1f6391;
@@ -520,9 +608,7 @@
     border-radius: 4px;
     cursor: pointer;
     font-size: 14px;
-    transition:
-      background-color 0.2s,
-      box-shadow 0.2s;
+    transition: background-color 0.2s, box-shadow 0.2s;
   }
   .edit-btn {
     background-color: #f39c12;
@@ -549,9 +635,7 @@
     cursor: pointer;
     background-color: #bdc3c7;
     color: #333;
-    transition:
-      background-color 0.2s,
-      box-shadow 0.2s;
+    transition: background-color 0.2s, box-shadow 0.2s;
   }
   .cancel-btn:hover {
     background-color: #95a5a6;
@@ -616,6 +700,7 @@
 
   .employee-container-generate {
     margin-top: -60%;
+    margin-left: -30%;
   }
 
   .employee-container {
@@ -623,29 +708,68 @@
     margin-left: 0%;
   }
 
-  .task-header{
-    display:flex;
+  .task-header {
+    display: flex;
     flex-direction: column;
     align-content: center;
   }
 
-  .title-container{
-    display:flex;
+  .title-container {
+    display: flex;
     flex-direction: row;
     align-content: center;
     justify-content: center;
   }
 
-  .horizontal-container{
-    display:flex;
+  .horizontal-container {
+    display: flex;
     flex-direction: row;
     align-content: center;
     justify-content: space-between;
-    border : 1px solid #ddd;
+    border: 1px solid #ddd;
+  } 
+
+  .my-tasks {
+    font-size: 35px;
   }
 
-  .my-tasks{
-   font-size: 35px;
+  .report-view-container {
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    justify-content: center;
   }
 
+  .first-dropdown, .second-dropdown {
+    display: flex;
+    flex-direction: row;
+    align-content: center;
+  }
+
+  .horizontal-container {
+    display: flex;
+    flex-direction: row;
+    align-content: center;
+    justify-content: space-between;
+    height: 50px;
+  }
+
+  .horizontal-container-generate {
+    display: flex;
+    flex-direction: row;
+    align-content: center;
+    gap: 25%;
+    margin: 5%;
+  }
+
+  .button-container {
+    display: flex;
+    flex-direction: row;
+    align-content: center;
+    justify-content: center;
+  }
+
+  .date-holder {
+    width: 80px;
+  }
 </style>

@@ -1,4 +1,4 @@
-<!-- Admin.svelte -->
+<!-- admin.svelte -->
 <script>
   import { onMount } from "svelte";
   let adminName = "";
@@ -14,6 +14,13 @@
   let showAssignTaskModal = false;
   let showEditTaskModal = false;
   let showReportModal = false;
+  let showChangePasswordModal = false;
+  let showProfileModal = false; // New: Edit Profile modal
+  let currentPassword = "";
+  let newPassword = "";
+  let confirmNewPassword = "";
+
+  // For creating a new user
   let newUser = {
     role: "",
     office: "",
@@ -33,6 +40,8 @@
     address: "",
     birthday: "",
   };
+
+  // For tasks
   let newTask = {
     title: "",
     description: "",
@@ -51,6 +60,8 @@
     status: "",
     assignedTo: "",
   };
+
+  // For report generation
   let reportUserId = "";
   let reportStartDate = "";
   let reportEndDate = "";
@@ -58,24 +69,36 @@
   let selectedManager = "";
   let filteredEmployees = [];
 
+  // For editing admin profile
+  let profileData = {
+    firstName: "",
+    lastName: "",
+    birthday: "",
+    number: "",
+    address: ""
+  };
+
   const API_URL = "http://localhost:3000";
 
   onMount(() => {
-    // Scroll to top immediately so table header is fully visible
     window.scrollTo(0, 0);
-
     const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
     if (loggedInUser) {
       adminName = `${loggedInUser.firstName} ${loggedInUser.lastName}`;
+      // Initialize profileData with current admin info
+      profileData = {
+        firstName: loggedInUser.firstName || "",
+        lastName: loggedInUser.lastName || "",
+        birthday: loggedInUser.birthday || "",
+        number: loggedInUser.number || "",
+        address: loggedInUser.address || ""
+      };
     }
     loadUsers();
     loadTasks();
     loadOffices();
   });
 
-  // ---------------------
-  // Users & Offices
-  // ---------------------
   async function loadUsers() {
     try {
       const res = await fetch(`${API_URL}/users`);
@@ -113,8 +136,6 @@
       console.log("User added:", data);
       await loadUsers();
       showUserModal = false;
-
-      // Reset form
       newUser = {
         role: "",
         office: "",
@@ -166,9 +187,6 @@
     }
   }
 
-  // ---------------------
-  // Tasks
-  // ---------------------
   async function loadTasks() {
     try {
       const res = await fetch(`${API_URL}/tasks`);
@@ -204,8 +222,6 @@
       console.log("Task assigned:", data);
       await loadTasks();
       showAssignTaskModal = false;
-
-      // Reset form
       newTask = {
         title: "",
         description: "",
@@ -264,9 +280,6 @@
     }
   }
 
-  // ---------------------
-  // Report Generation
-  // ---------------------
   function filterEmployees() {
     const manager = users.find((u) => u.id == selectedManager);
     if (manager) {
@@ -289,19 +302,15 @@
       const filtered = allTasks.filter((task) => {
         const belongsToUser =
           task.createdBy == reportUserId || task.assignedTo == reportUserId;
-
         const taskStart = new Date(task.startDate);
         const taskEnd = new Date(task.endDate);
         const filterStart = new Date(reportStartDate);
         const filterEnd = new Date(reportEndDate);
         const overlaps = taskStart <= filterEnd && taskEnd >= filterStart;
-
         return belongsToUser && overlaps;
       });
-
       if (filtered.length === 0) {
-        reportPreviewHtml =
-          "<p>No tasks found for the selected criteria.</p>";
+        reportPreviewHtml = "<p>No tasks found for the selected criteria.</p>";
       } else {
         let html = `<table border='1' style='width:100%; border-collapse: collapse;'>
             <tr>
@@ -345,13 +354,87 @@
     });
   }
 
-  // Logout
+  async function changePassword() {
+    if (newPassword !== confirmNewPassword) {
+      alert("New passwords do not match.");
+      return;
+    }
+    const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
+    if (!loggedInUser) {
+      alert("You must be logged in.");
+      return;
+    }
+    try {
+      const res = await fetch(`${API_URL}/auth/update-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: loggedInUser.username,
+          currentPassword: currentPassword,
+          newPassword: newPassword
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.message || "Error updating password.");
+      } else {
+        alert("Password updated successfully.");
+        showChangePasswordModal = false;
+        currentPassword = "";
+        newPassword = "";
+        confirmNewPassword = "";
+      }
+    } catch (error) {
+      console.error("Error changing password:", error);
+      alert("Error changing password.");
+    }
+  }
+
+  // ---------------------
+  // Edit Profile Feature for Manager
+  // ---------------------
+  async function updateProfile() {
+    const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
+    // Build an updated profile object.
+    // If a field is empty, use the current value.
+    const updatedProfile = {
+      firstName: profileData.firstName.trim() || loggedInUser.firstName,
+      lastName: profileData.lastName.trim() || loggedInUser.lastName,
+      // Required fields:
+      role: loggedInUser.role,
+      office: loggedInUser.office,
+      birthday: profileData.birthday.trim() || loggedInUser.birthday,
+      number: profileData.number.trim() || loggedInUser.number,
+      address: profileData.address.trim() || loggedInUser.address,
+    };
+    try {
+      const res = await fetch(`${API_URL}/users/${loggedInUser.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedProfile),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.message || "Error updating profile.");
+      } else {
+        alert("Profile updated successfully.");
+        // Update localStorage and loggedInUser with updated info
+        const newUserData = { ...loggedInUser, ...updatedProfile };
+        localStorage.setItem("loggedInUser", JSON.stringify(newUserData));
+        adminName = `${newUserData.firstName} ${newUserData.lastName}`;
+        showProfileModal = false;
+      }
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      alert("Error updating profile.");
+    }
+  }
+
   function logout() {
     localStorage.removeItem("loggedInUser");
     window.location.href = "/";
   }
 
-  // Function to switch the main view
   function setView(view) {
     currentView = view;
   }
@@ -360,26 +443,20 @@
 <div class="admin-container">
   <aside class="side-panel">
     <h1>Admin Dashboard</h1>
-    <button class="nav-btn" on:click={() => setView("tasks")}>
-      View All Tasks
-    </button>
-    <button class="nav-btn" on:click={() => setView("userManagement")}>
-      User Management
-    </button>
-    <button class="nav-btn" on:click={() => setView("report")}>
-      Generate Task Report
-    </button>
+    <button class="nav-btn" on:click={() => setView("tasks")}>View All Tasks</button>
+    <button class="nav-btn" on:click={() => setView("userManagement")}>User Management</button>
+    <button class="nav-btn" on:click={() => setView("report")}>Generate Task Report</button>
+    <button class="nav-btn" on:click={() => showChangePasswordModal = true}>Change Password</button>
+    <!-- New Edit Profile Button for Manager -->
+    <button class="nav-btn" on:click={() => showProfileModal = true}>Edit Profile</button>
     <button class="logout-btn" on:click={logout}>Logout</button>
   </aside>
 
   <main>
     {#if currentView === "tasks"}
-      <!-- Tasks View -->
       <div class="TaskContainer">
         <div class="buttonContainer-assign">
-          <button class="primary-btn" on:click={() => (showAssignTaskModal = true)}>
-            ➕ Assign Task
-          </button>
+          <button class="primary-btn" on:click={() => (showAssignTaskModal = true)}>➕ Assign Task</button>
         </div>
         <div class="sectionContainer">
           <section class="task-section">
@@ -410,12 +487,8 @@
                     <td>{task.createdBy}</td>
                     <td>
                       <div class="action-buttons">
-                        <button class="edit-btn" on:click={() => editTask(task.id)}>
-                          ✏️ Edit
-                        </button>
-                        <button class="delete-btn" on:click={() => deleteTask(task.id)}>
-                          🗑 Delete
-                        </button>
+                        <button class="edit-btn" on:click={() => editTask(task.id)}>✏️ Edit</button>
+                        <button class="delete-btn" on:click={() => deleteTask(task.id)}>🗑 Delete</button>
                       </div>
                     </td>
                   </tr>
@@ -426,12 +499,9 @@
         </div>
       </div>
     {:else if currentView === "userManagement"}
-      <!-- User Management View -->
       <div class="manageContainer">
         <div class="buttonContainer-add">
-          <button class="userManagementbtn" on:click={() => (showUserModal = true)}>
-            ➕ Add User
-          </button>
+          <button class="userManagementbtn" on:click={() => (showUserModal = true)}>➕ Add User</button>
         </div>
         <div>
           <section class="user-management">
@@ -470,12 +540,8 @@
                     <td>{user.office || "N/A"}</td>
                     <td>
                       <div class="action-buttons">
-                        <button class="edit-btn" on:click={() => editUser(user.id)}>
-                          ✏️ Edit
-                        </button>
-                        <button class="delete-btn" on:click={() => deleteUser(user.id)}>
-                          🗑 Delete
-                        </button>
+                        <button class="edit-btn" on:click={() => editUser(user.id)}>✏️ Edit</button>
+                        <button class="delete-btn" on:click={() => deleteUser(user.id)}>🗑 Delete</button>
                       </div>
                     </td>
                   </tr>
@@ -486,7 +552,6 @@
         </div>
       </div>
     {:else if currentView === "report"}
-      <!-- Generate Task Report View -->
       <section class="report-view">
         <div class="report-card">
           <h2>Task Report</h2>
@@ -537,7 +602,7 @@
       </section>
     {/if}
   </main>
-  <!-- Modals -->
+
   {#if showUserModal}
     <div class="modal-overlay">
       <div class="modal-content">
@@ -568,9 +633,7 @@
           <input id="birthday" type="date" bind:value={newUser.birthday} />
           <div class="modal-actions">
             <button class="primary-btn" on:click={addUser}>Save User</button>
-            <button class="cancel-btn" on:click={() => (showUserModal = false)}>
-              Cancel
-            </button>
+            <button class="cancel-btn" on:click={() => (showUserModal = false)}>Cancel</button>
           </div>
         {/if}
       </div>
@@ -605,9 +668,7 @@
         <input id="birthday" type="date" bind:value={editUserData.birthday} />
         <div class="modal-actions">
           <button class="primary-btn" on:click={updateUser}>Save Changes</button>
-          <button class="cancel-btn" on:click={() => (showEditUserModal = false)}>
-            Cancel
-          </button>
+          <button class="cancel-btn" on:click={() => (showEditUserModal = false)}>Cancel</button>
         </div>
       </div>
     </div>
@@ -642,9 +703,7 @@
         </select>
         <div class="modal-actions">
           <button class="primary-btn" on:click={assignTask}>Assign Task</button>
-          <button class="cancel-btn" on:click={() => (showAssignTaskModal = false)}>
-            Cancel
-          </button>
+          <button class="cancel-btn" on:click={() => (showAssignTaskModal = false)}>Cancel</button>
         </div>
       </div>
     </div>
@@ -680,9 +739,47 @@
         </select>
         <div class="modal-actions">
           <button class="primary-btn" on:click={updateTask}>Save Changes</button>
-          <button class="cancel-btn" on:click={() => (showEditTaskModal = false)}>
-            Cancel
-          </button>
+          <button class="cancel-btn" on:click={() => (showEditTaskModal = false)}>Cancel</button>
+        </div>
+      </div>
+    </div>
+  {/if}
+
+  {#if showChangePasswordModal}
+    <div class="modal-overlay">
+      <div class="modal-content">
+        <h2>Change Password</h2>
+        <label for="currentPassword">Current Password:</label>
+        <input id="currentPassword" type="password" bind:value={currentPassword} />
+        <label for="newPassword">New Password:</label>
+        <input id="newPassword" type="password" bind:value={newPassword} />
+        <label for="confirmNewPassword">Confirm New Password:</label>
+        <input id="confirmNewPassword" type="password" bind:value={confirmNewPassword} />
+        <div class="modal-actions">
+          <button class="primary-btn" on:click={changePassword}>Update Password</button>
+          <button class="cancel-btn" on:click={() => showChangePasswordModal = false}>Cancel</button>
+        </div>
+      </div>
+    </div>
+  {/if}
+
+  {#if showProfileModal}
+    <div class="modal-overlay">
+      <div class="modal-content">
+        <h2>Edit Profile</h2>
+        <label for="firstName">First Name:</label>
+        <input id="firstName" type="text" bind:value={profileData.firstName} />
+        <label for="lastName">Last Name:</label>
+        <input id="lastName" type="text" bind:value={profileData.lastName} />
+        <label for="birthday">Birthday:</label>
+        <input id="birthday" type="date" bind:value={profileData.birthday} />
+        <label for="number">Phone Number:</label>
+        <input id="number" type="text" bind:value={profileData.number} />
+        <label for="address">Address:</label>
+        <input id="address" type="text" bind:value={profileData.address} />
+        <div class="modal-actions">
+          <button class="primary-btn" on:click={updateProfile}>Update Profile</button>
+          <button class="cancel-btn" on:click={() => showProfileModal = false}>Cancel</button>
         </div>
       </div>
     </div>
@@ -747,7 +844,6 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
 
-  /* Main Content Area */
   main {
     margin-left: 270px;
     padding: 20px;
@@ -755,14 +851,12 @@
     box-sizing: border-box;
   }
 
-  /* Updated Report View CSS */
   .report-view {
     display: flex;
     justify-content: center;
     width: 100%;
     height: 30%;
-    margin-left:8%;
-    
+    margin-left: 8%;
   }
   
   .report-card {
@@ -772,7 +866,7 @@
     width: 100%;
     max-width: 800px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    margin-top:-6%
+    margin-top: -6%;
   }
   
   .report-card h2 {
@@ -810,14 +904,12 @@
     border-radius: 8px;
   }
 
-  
   .user-management {
     margin-top: 20%;
     margin-left: 10%;
     text-align: center;
   }
 
-  
   .dashboard-cards {
     margin-bottom: 10%; 
     margin-top: -10%;
@@ -856,7 +948,6 @@
     margin: 0;
   }
 
-  /* Tables */
   .admin-table {
     width: 100%;
     margin: 20px 0;
@@ -883,7 +974,6 @@
     background-color: #f2f2f2;
   }
 
-  /* Buttons */
   .primary-btn, .userManagementbtn {
     padding: 10px 16px;
     border: none;
@@ -1045,6 +1135,5 @@
 
   .userManagementbtn {
     margin-bottom: 20px;
-    
   }
 </style>
