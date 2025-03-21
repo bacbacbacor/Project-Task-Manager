@@ -339,7 +339,7 @@
     <button class="nav-btn" on:click={() => setView("tasks")}>My Tasks</button>
     <button class="nav-btn" on:click={() => setView("report")}>Generate Task Report</button>
     <!-- New Buttons for Change Password and Edit Profile -->
-    <button class="nav-btn" on:click={() => showChangePasswordModal = true}>Change Password</button>
+    
     <button class="nav-btn" on:click={() => showProfileModal = true}>Edit Profile</button>
     <button class="logout-btn" on:click={logout}>Logout</button>
   </aside>
@@ -532,6 +532,7 @@
         <div class="modal-actions">
           <button class="primary-btn" on:click={updateProfile}>Update Profile</button>
           <button class="cancel-btn" on:click={() => showProfileModal = false}>Cancel</button>
+          <button class="nav-btn" on:click={() => showChangePasswordModal = true} on:click={() => showProfileModal = false}>Change Password</button>
         </div>
       </div>
     </div>

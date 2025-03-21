@@ -446,7 +446,6 @@
     <button class="nav-btn" on:click={() => setView("tasks")}>View All Tasks</button>
     <button class="nav-btn" on:click={() => setView("userManagement")}>User Management</button>
     <button class="nav-btn" on:click={() => setView("report")}>Generate Task Report</button>
-    <button class="nav-btn" on:click={() => showChangePasswordModal = true}>Change Password</button>
     <!-- New Edit Profile Button for Manager -->
     <button class="nav-btn" on:click={() => showProfileModal = true}>Edit Profile</button>
     <button class="logout-btn" on:click={logout}>Logout</button>
@@ -779,7 +778,8 @@
         <input id="address" type="text" bind:value={profileData.address} />
         <div class="modal-actions">
           <button class="primary-btn" on:click={updateProfile}>Update Profile</button>
-          <button class="cancel-btn" on:click={() => showProfileModal = false}>Cancel</button>
+          <button class="cancel-btn" >Cancel</button>
+          <button class="nav-btn"  on:click={() => showChangePasswordModal = true} on:click={() => showProfileModal = false}>Change Password</button>
         </div>
       </div>
     </div>
@@ -1116,6 +1116,7 @@
     margin-top: -10%;
   }
 
+
   .buttonContainer-assign{
     padding-bottom: 5%;
     display: flex;
@@ -1136,4 +1137,7 @@
   .userManagementbtn {
     margin-bottom: 20px;
   }
+
 </style>
+
+

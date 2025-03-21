@@ -300,7 +300,7 @@
     <h1>Employee Dashboard</h1>
     <button class="nav-btn" on:click={() => setView("tasks")}>My Tasks</button>
     <button class="nav-btn" on:click={() => setView("report")}>Task Report</button>
-    <button class="nav-btn" on:click={() => (showChangePasswordModal = true)}>Change Password</button>
+    
     <!-- New Edit Profile Button -->
     <button class="nav-btn" on:click={() => (showProfileModal = true)}>Edit Profile</button>
     <button class="logout-btn" on:click={logout}>Logout</button>
@@ -490,6 +490,7 @@
         <div class="modal-actions">
           <button class="primary-btn" on:click={updateProfile}>Update Profile</button>
           <button class="cancel-btn" on:click={() => showProfileModal = false}>Cancel</button>
+          <button class="nav-btn" on:click={() => (showChangePasswordModal = true)} on:click={() => showProfileModal = false}>Change Password</button>
         </div>
       </div>
     </div>
