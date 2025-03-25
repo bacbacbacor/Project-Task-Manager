@@ -778,7 +778,7 @@
         <input id="address" type="text" bind:value={profileData.address} />
         <div class="modal-actions">
           <button class="primary-btn" on:click={updateProfile}>Update Profile</button>
-          <button class="cancel-btn" >Cancel</button>
+          <button class="cancel-btn" on:click={() => showProfileModal = false}>Cancel</button>
           <button class="nav-btn"  on:click={() => showChangePasswordModal = true} on:click={() => showProfileModal = false}>Change Password</button>
         </div>
       </div>
@@ -1115,7 +1115,6 @@
     margin-bottom: -25%;
     margin-top: -10%;
   }
-
 
   .buttonContainer-assign{
     padding-bottom: 5%;

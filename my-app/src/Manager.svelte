@@ -10,12 +10,10 @@
   let showEditTaskModal = false;
   let showReportModal = false;
   let showChangePasswordModal = false;
-  let showProfileModal = false; // New: Edit Profile modal
+  let showProfileModal = false; 
   let currentPassword = "";
   let newPassword = "";
   let confirmNewPassword = "";
-
-  // For assigning a new task
   let newTask = {
     title: "",
     description: "",
@@ -35,7 +33,7 @@
     assignedTo: "",
   };
 
-  // For report generation
+  
   let reportPreviewHtml = "";
   let reportStartDate = "";
   let reportEndDate = "";
@@ -43,7 +41,7 @@
 
   const API_URL = "http://localhost:3000";
 
-  // For editing manager profile
+ 
   let profileData = {
     firstName: "",
     lastName: "",
@@ -56,7 +54,6 @@
     loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
     if (loggedInUser) {
       managerName = `${loggedInUser.firstName} ${loggedInUser.lastName}`;
-      // Initialize profileData with current manager info
       profileData = {
         firstName: loggedInUser.firstName || "",
         lastName: loggedInUser.lastName || "",
@@ -199,10 +196,10 @@
         const overlaps = taskStart <= filterEnd && taskEnd >= filterStart;
         let belongsToUser = false;
         if (reportUserId == loggedInUser.id) {
-          // For "Myself", include only tasks assigned to the manager
+          
           belongsToUser = task.assignedTo == reportUserId;
         } else {
-          // For an employee, include tasks where they are either the creator or the assignee
+      
           belongsToUser =
             task.createdBy == reportUserId || task.assignedTo == reportUserId;
         }
@@ -289,11 +286,10 @@
   // Edit Profile Feature for Manager
   // ---------------------
   async function updateProfile() {
-    // Build updatedProfile object: if a field is blank, use the current value.
+    
     const updatedProfile = {
       firstName: profileData.firstName.trim() || loggedInUser.firstName,
       lastName: profileData.lastName.trim() || loggedInUser.lastName,
-      // Required fields from backend:
       role: loggedInUser.role,
       office: loggedInUser.office,
       birthday: profileData.birthday.trim() || loggedInUser.birthday,
@@ -311,7 +307,6 @@
         alert(data.message || "Error updating profile.");
       } else {
         alert("Profile updated successfully.");
-        // Update localStorage and loggedInUser with updated info
         const newUserData = { ...loggedInUser, ...updatedProfile };
         localStorage.setItem("loggedInUser", JSON.stringify(newUserData));
         managerName = `${newUserData.firstName} ${newUserData.lastName}`;
@@ -337,9 +332,7 @@
   <aside class="side-panel">
     <h1>Manager Dashboard</h1>
     <button class="nav-btn" on:click={() => setView("tasks")}>My Tasks</button>
-    <button class="nav-btn" on:click={() => setView("report")}>Generate Task Report</button>
-    <!-- New Buttons for Change Password and Edit Profile -->
-    
+    <button class="nav-btn" on:click={() => setView("report")}>Generate Task Report</button>  
     <button class="nav-btn" on:click={() => showProfileModal = true}>Edit Profile</button>
     <button class="logout-btn" on:click={logout}>Logout</button>
   </aside>
