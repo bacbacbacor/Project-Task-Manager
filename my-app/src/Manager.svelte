@@ -1,6 +1,8 @@
 <!-- manager.svelte -->
 <script>
+
   import { onMount } from "svelte";
+
   let managerName = "";
   let tasks = [];
   let employees = [];
@@ -14,6 +16,7 @@
   let currentPassword = "";
   let newPassword = "";
   let confirmNewPassword = "";
+
   let newTask = {
     title: "",
     description: "",
@@ -33,15 +36,11 @@
     assignedTo: "",
   };
 
-  
   let reportPreviewHtml = "";
   let reportStartDate = "";
   let reportEndDate = "";
   let reportUserId = "";
 
-  const API_URL = "http://localhost:3000";
-
- 
   let profileData = {
     firstName: "",
     lastName: "",
@@ -49,6 +48,8 @@
     number: "",
     address: ""
   };
+
+  const API_URL = "http://localhost:3000";
 
   onMount(() => {
     loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
@@ -183,9 +184,7 @@
       return;
     }
     try {
-      const url = `${API_URL}/tasks?userId=${loggedInUser.id}&role=${loggedInUser.role}&office=${encodeURIComponent(
-        loggedInUser.office
-      )}`;
+      const url = `${API_URL}/tasks?userId=${loggedInUser.id}&role=${loggedInUser.role}&office=${encodeURIComponent( loggedInUser.office )}`;
       const res = await fetch(url);
       const allTasks = await res.json();
       const filtered = allTasks.filter((task) => {
@@ -195,11 +194,8 @@
         const taskEnd = new Date(task.endDate);
         const overlaps = taskStart <= filterEnd && taskEnd >= filterStart;
         let belongsToUser = false;
-        if (reportUserId == loggedInUser.id) {
-          
-          belongsToUser = task.assignedTo == reportUserId;
-        } else {
-      
+        if (reportUserId == loggedInUser.id) { belongsToUser = task.assignedTo == reportUserId;} 
+        else {
           belongsToUser =
             task.createdBy == reportUserId || task.assignedTo == reportUserId;
         }

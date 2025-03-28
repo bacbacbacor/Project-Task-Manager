@@ -42,3 +42,6 @@ Next goal: Transfer the change passowrd feature in to the edit profile
 To do list next week, check on bugs and fix them if you can
 assuming there are no more bugs or it is all fixed
 
+Issue: In the admin dashboard, Cannot view the tasks of a manager because of the logic. Must change it so that when no employee is selected it automatically means that the manager is the one being selected
+
+ 

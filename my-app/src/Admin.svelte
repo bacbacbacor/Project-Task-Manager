@@ -15,12 +15,10 @@
   let showEditTaskModal = false;
   let showReportModal = false;
   let showChangePasswordModal = false;
-  let showProfileModal = false; // New: Edit Profile modal
+  let showProfileModal = false;
   let currentPassword = "";
   let newPassword = "";
   let confirmNewPassword = "";
-
-  // For creating a new user
   let newUser = {
     role: "",
     office: "",
@@ -41,7 +39,6 @@
     birthday: "",
   };
 
-  // For tasks
   let newTask = {
     title: "",
     description: "",
@@ -51,6 +48,7 @@
     assignedTo: "",
     createdBy: "",
   };
+
   let editTaskData = {
     id: null,
     title: "",
@@ -61,7 +59,6 @@
     assignedTo: "",
   };
 
-  // For report generation
   let reportUserId = "";
   let reportStartDate = "";
   let reportEndDate = "";
@@ -69,7 +66,6 @@
   let selectedManager = "";
   let filteredEmployees = [];
 
-  // For editing admin profile
   let profileData = {
     firstName: "",
     lastName: "",
@@ -78,6 +74,8 @@
     address: ""
   };
 
+  
+
   const API_URL = "http://localhost:3000";
 
   onMount(() => {
@@ -85,7 +83,6 @@
     const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
     if (loggedInUser) {
       adminName = `${loggedInUser.firstName} ${loggedInUser.lastName}`;
-      // Initialize profileData with current admin info
       profileData = {
         firstName: loggedInUser.firstName || "",
         lastName: loggedInUser.lastName || "",
@@ -292,10 +289,12 @@
   }
 
   async function previewReport() {
-    if (!reportUserId || !reportStartDate || !reportEndDate) {
+
+     if ( !reportUserId || !reportStartDate || !reportEndDate) {
       alert("Please select a user and a date range.");
       return;
     }
+  
     try {
       const res = await fetch(`${API_URL}/tasks`);
       const allTasks = await res.json();
@@ -389,18 +388,12 @@
       alert("Error changing password.");
     }
   }
-
-  // ---------------------
   // Edit Profile Feature for Manager
-  // ---------------------
   async function updateProfile() {
     const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
-    // Build an updated profile object.
-    // If a field is empty, use the current value.
     const updatedProfile = {
       firstName: profileData.firstName.trim() || loggedInUser.firstName,
       lastName: profileData.lastName.trim() || loggedInUser.lastName,
-      // Required fields:
       role: loggedInUser.role,
       office: loggedInUser.office,
       birthday: profileData.birthday.trim() || loggedInUser.birthday,
@@ -418,7 +411,6 @@
         alert(data.message || "Error updating profile.");
       } else {
         alert("Profile updated successfully.");
-        // Update localStorage and loggedInUser with updated info
         const newUserData = { ...loggedInUser, ...updatedProfile };
         localStorage.setItem("loggedInUser", JSON.stringify(newUserData));
         adminName = `${newUserData.firstName} ${newUserData.lastName}`;
@@ -438,6 +430,8 @@
   function setView(view) {
     currentView = view;
   }
+
+  
 </script>
 
 <div class="admin-container">
@@ -446,7 +440,6 @@
     <button class="nav-btn" on:click={() => setView("tasks")}>View All Tasks</button>
     <button class="nav-btn" on:click={() => setView("userManagement")}>User Management</button>
     <button class="nav-btn" on:click={() => setView("report")}>Generate Task Report</button>
-    <!-- New Edit Profile Button for Manager -->
     <button class="nav-btn" on:click={() => showProfileModal = true}>Edit Profile</button>
     <button class="logout-btn" on:click={logout}>Logout</button>
   </aside>
@@ -577,6 +570,7 @@
                 </select>
               </div>
             {/if}
+          
             <div class="filter-group">
               <label for="startDate">Start Date:</label>
               <input id="startDate" type="date" bind:value={reportStartDate} />
@@ -601,7 +595,6 @@
       </section>
     {/if}
   </main>
-
   {#if showUserModal}
     <div class="modal-overlay">
       <div class="modal-content">
@@ -787,6 +780,7 @@
 </div>
 
 <style>
+  
   .admin-container {
     font-family: Arial, sans-serif;
     background-color: #f4f7f9;

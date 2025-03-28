@@ -1,5 +1,6 @@
 <!-- Employee.svelte -->
 <script>
+
   import { onMount } from "svelte";
 
   let employeeName = "";
@@ -10,14 +11,10 @@
   let showEditTaskModal = false;
   let showReportModal = false;
   let showChangePasswordModal = false;
-  let showProfileModal = false; // For Edit Profile
-
-  // Variables for Change Password
+  let showProfileModal = false;
   let currentPassword = "";
   let newPassword = "";
   let confirmNewPassword = "";
-
-  // Variables for profile data update
   let profileData = {
     firstName: "",
     lastName: "",
@@ -33,6 +30,7 @@
     endDate: "",
     status: "Pending",
   };
+
   let editTaskData = {
     id: null,
     title: "",
@@ -41,6 +39,7 @@
     endDate: "",
     status: "",
   };
+
   let reportPreviewHtml = "";
   let reportStartDate = "";
   let reportEndDate = "";
@@ -48,11 +47,9 @@
 
   const API_URL = "http://localhost:3000";
 
-  onMount(() => {
-    loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
+  onMount(() => { loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
     if (loggedInUser) {
       employeeName = `${loggedInUser.firstName} ${loggedInUser.lastName}`;
-      // Initialize profileData with current user info
       profileData = {
         firstName: loggedInUser.firstName || "",
         lastName: loggedInUser.lastName || "",
@@ -259,12 +256,9 @@
   // Edit Profile Feature
   // ---------------------
   async function updateProfile() {
-    // Create an updated profile object.
-    // If a field is empty, use the current value.
     const updatedProfile = {
       firstName: profileData.firstName.trim() || loggedInUser.firstName,
       lastName: profileData.lastName.trim() || loggedInUser.lastName,
-      // Include required fields that employees cannot change:
       role: loggedInUser.role,
       office: loggedInUser.office,
       birthday: profileData.birthday.trim() || loggedInUser.birthday,
@@ -282,7 +276,6 @@
         alert(data.message || "Error updating profile.");
       } else {
         alert("Profile updated successfully.");
-        // Update localStorage and loggedInUser with the updated info
         loggedInUser = { ...loggedInUser, ...updatedProfile };
         localStorage.setItem("loggedInUser", JSON.stringify(loggedInUser));
         employeeName = `${loggedInUser.firstName} ${loggedInUser.lastName}`;
@@ -300,8 +293,6 @@
     <h1>Employee Dashboard</h1>
     <button class="nav-btn" on:click={() => setView("tasks")}>My Tasks</button>
     <button class="nav-btn" on:click={() => setView("report")}>Task Report</button>
-    
-    <!-- New Edit Profile Button -->
     <button class="nav-btn" on:click={() => (showProfileModal = true)}>Edit Profile</button>
     <button class="logout-btn" on:click={logout}>Logout</button>
   </aside>
@@ -572,6 +563,7 @@
     overflow: hidden;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   }
+
   .admin-table th,
   .admin-table td {
     border: 1px solid #ddd;
@@ -611,10 +603,12 @@
     font-size: 14px;
     transition: background-color 0.2s, box-shadow 0.2s;
   }
+
   .edit-btn {
     background-color: #f39c12;
     color: #fff;
   }
+
   .edit-btn:hover {
     background-color: #d68910;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
